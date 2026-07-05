@@ -7,7 +7,12 @@ export class DynamoDocumentRepository implements DocumentRepository {
   private readonly client = DynamoDBDocumentClient.from(
     new DynamoDBClient({
       region: process.env.AWS_REGION ?? "us-east-2"
-    })
+    }),
+    {
+      marshallOptions: {
+        removeUndefinedValues: true
+      }
+    }
   );
 
   async create(record: DocumentRecord): Promise<DocumentRecord> {
