@@ -1,0 +1,21 @@
+{
+  "name": "@policylens/cdk",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "synth": "npm run build --workspace @policylens/domain && npm run build --workspace @policylens/api && npm run build && cdk synth",
+    "deploy": "npm run synth && cdk deploy",
+    "destroy": "cdk destroy"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.176.0",
+    "constructs": "^10.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "aws-cdk": "^2.176.0",
+    "typescript": "^5.7.0"
+  }
+}
+

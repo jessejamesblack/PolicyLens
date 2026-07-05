@@ -1,0 +1,20 @@
+{
+  "name": "@policylens/harness",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "eval": "npm run build --workspace @policylens/domain && tsx src/run-evals.ts",
+    "test": "vitest run ../../harness"
+  },
+  "dependencies": {
+    "@policylens/domain": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.8"
+  }
+}
+
