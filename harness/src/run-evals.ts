@@ -63,8 +63,19 @@ export async function runEvalSuite(projectRoot = defaultProjectRoot()): Promise<
       status: "PROCESSED",
       validationStatus: validated.status,
       extraction: validated.extraction,
+      barcode: null,
       rawOcr: { adapter: "harness" },
       rawExtraction: extraction,
+      redaction: null,
+      piiRetention: {
+        retainOriginalFile: true,
+        retainRawOcr: false,
+        retainRawExtraction: false,
+        rawRetentionDays: 7,
+        redactedCopyRequired: true
+      },
+      processingJob: null,
+      adjudications: [],
       errorMessage: null,
       createdAt: new Date("2026-07-01T00:00:00.000Z").toISOString(),
       updatedAt: new Date("2026-07-01T00:00:00.000Z").toISOString()

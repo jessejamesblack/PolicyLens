@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseDocumentRecord } from "./schemas";
-import type { DocumentRecord } from "./types";
+import { EXTRACTION_SCHEMA_VERSION, type DocumentRecord } from "./types";
 
 const currentRecord: DocumentRecord = {
   id: "record-1",
@@ -11,6 +11,7 @@ const currentRecord: DocumentRecord = {
   status: "PROCESSED",
   validationStatus: "VALID",
   extraction: {
+    schemaVersion: EXTRACTION_SCHEMA_VERSION,
     fullName: "Jordan Avery Sample",
     licenseNumber: "OH1234567",
     issuingState: "OH",
@@ -33,10 +34,22 @@ const currentRecord: DocumentRecord = {
     ageAtScan: 35,
     isExpired: false,
     confidenceScore: 0.91,
+    fieldConfidences: [],
     warnings: []
   },
+  barcode: null,
   rawOcr: { adapter: "test" },
   rawExtraction: { source: "test" },
+  redaction: null,
+  piiRetention: {
+    retainOriginalFile: true,
+    retainRawOcr: false,
+    retainRawExtraction: false,
+    rawRetentionDays: 7,
+    redactedCopyRequired: true
+  },
+  processingJob: null,
+  adjudications: [],
   errorMessage: null,
   createdAt: "2026-07-04T00:00:00.000Z",
   updatedAt: "2026-07-04T00:00:00.000Z"

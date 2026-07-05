@@ -15,6 +15,7 @@
     "@fastify/multipart": "^10.0.0",
     "@aws-sdk/client-dynamodb": "^3.717.0",
     "@aws-sdk/client-s3": "^3.717.0",
+    "@aws-sdk/client-sqs": "^3.717.0",
     "@aws-sdk/client-textract": "^3.717.0",
     "@aws-sdk/lib-dynamodb": "^3.717.0",
     "@nestjs/common": "^11.0.0",

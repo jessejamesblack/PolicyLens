@@ -88,6 +88,23 @@ export function validateStructuredExtraction(
     });
   }
 
+  for (const fieldConfidence of input.fieldConfidences ?? []) {
+    if (input.confidenceScore < LOW_CONFIDENCE_THRESHOLD) {
+      continue;
+    }
+
+    if (!fieldConfidence.needsAdjudication || fieldConfidence.confidence >= LOW_CONFIDENCE_THRESHOLD) {
+      continue;
+    }
+
+    warnings.push({
+      category: "LOW_CONFIDENCE",
+      field: fieldConfidence.field,
+      message: `${fieldConfidence.field} needs a human check.`,
+      severity: "warning"
+    });
+  }
+
   const dedupedWarnings = dedupeWarnings(warnings);
   const status = dedupedWarnings.some((warning) => warning.severity === "error")
     ? "FAILED"

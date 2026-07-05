@@ -1,4 +1,12 @@
-import { DocumentType, OcrResult, StructuredLicenseExtraction } from "./types";
+import {
+  DocumentType,
+  EXTRACTION_SCHEMA_VERSION,
+  FieldConfidence,
+  LICENSE_FIELD_NAMES,
+  LicenseFieldName,
+  OcrResult,
+  StructuredLicenseExtraction
+} from "./types";
 
 export function parseDriverLicenseText(input: {
   text: string;
@@ -47,7 +55,8 @@ export function parseDriverLicenseText(input: {
   const isExpired = expirationDate ? isBefore(expirationDate, referenceDate) : false;
   const confidenceScore = findConfidence(text) ?? input.ocrResult?.confidenceScore ?? 0.86;
 
-  return {
+  const extraction = {
+    schemaVersion: EXTRACTION_SCHEMA_VERSION,
     fullName,
     licenseNumber,
     issuingState,
@@ -70,7 +79,13 @@ export function parseDriverLicenseText(input: {
     ageAtScan,
     isExpired,
     confidenceScore,
+    fieldConfidences: [],
     warnings: []
+  };
+
+  return {
+    ...extraction,
+    fieldConfidences: buildFieldConfidences(extraction, confidenceScore)
   };
 }
 
@@ -699,4 +714,38 @@ function findStateName(value: string): string | null {
   }
 
   return null;
+}
+
+function buildFieldConfidences(
+  extraction: Omit<StructuredLicenseExtraction, "fieldConfidences">,
+  defaultConfidence: number
+): FieldConfidence[] {
+  return LICENSE_FIELD_NAMES.map((field) => {
+    const value = extraction[field];
+    const present = Array.isArray(value) ? value.length > 0 : value !== null;
+    const confidence = present ? inferFieldConfidence(field, defaultConfidence) : Math.min(defaultConfidence, 0.45);
+
+    return {
+      field,
+      confidence,
+      source: present ? inferFieldSource(field) : "parser",
+      needsAdjudication: present && confidence < 0.75
+    };
+  });
+}
+
+function inferFieldConfidence(field: LicenseFieldName, defaultConfidence: number): number {
+  if (field === "isExpired" || field === "ageAtScan") {
+    return Math.max(0.8, defaultConfidence);
+  }
+
+  if (field === "realId" || field === "organDonor" || field === "veteran") {
+    return Math.min(defaultConfidence, 0.86);
+  }
+
+  return defaultConfidence;
+}
+
+function inferFieldSource(field: LicenseFieldName): FieldConfidence["source"] {
+  return field === "isExpired" || field === "ageAtScan" ? "parser" : "ocr";
 }

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Get,
   Inject,
@@ -7,7 +8,7 @@ import {
   Post,
   Req
 } from "@nestjs/common";
-import { DOCUMENT_TYPES, documentTypeSchema } from "@driverslicense/domain";
+import { DOCUMENT_TYPES, documentTypeSchema, licenseFieldNameSchema } from "@driverslicense/domain";
 import { DocumentsService } from "./documents.service";
 
 type MultipartFilePart = {
@@ -97,6 +98,24 @@ export class DocumentsController {
       rawExtraction: record.rawExtraction,
       errorMessage: record.errorMessage
     };
+  }
+
+  @Post(":id/adjudicate")
+  async adjudicate(
+    @Param("id") documentId: string,
+    @Body() body: { field?: unknown; value?: unknown; note?: unknown }
+  ) {
+    const parsedField = licenseFieldNameSchema.safeParse(body.field);
+    if (!parsedField.success) {
+      throw new BadRequestException("field must be a supported license field.");
+    }
+
+    return this.documentsService.adjudicate({
+      documentId,
+      field: parsedField.data,
+      value: body.value ?? null,
+      note: typeof body.note === "string" ? body.note : null
+    });
   }
 
   @Get()

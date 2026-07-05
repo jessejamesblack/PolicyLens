@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { StructuredLicenseExtraction } from "./types";
+import { EXTRACTION_SCHEMA_VERSION, StructuredLicenseExtraction } from "./types";
 import { validateStructuredExtraction } from "./validation";
 
 const baseExtraction: StructuredLicenseExtraction = {
+  schemaVersion: EXTRACTION_SCHEMA_VERSION,
   fullName: "Jordan Avery Sample",
   licenseNumber: "OH1234567",
   issuingState: "OH",
@@ -25,6 +26,7 @@ const baseExtraction: StructuredLicenseExtraction = {
   ageAtScan: 35,
   isExpired: false,
   confidenceScore: 0.91,
+  fieldConfidences: [],
   warnings: []
 };
 
@@ -79,5 +81,27 @@ describe("validateStructuredExtraction", () => {
     const result = validateStructuredExtraction({ ...baseExtraction, ageAtScan: 19 });
     expect(result.status).toBe("WARNING");
     expect(result.warnings.map((warning) => warning.category)).toContain("UNDER_AGE_21");
+  });
+
+  it("points low-confidence field warnings at the field that needs a human check", () => {
+    const result = validateStructuredExtraction({
+      ...baseExtraction,
+      fieldConfidences: [
+        {
+          field: "licenseNumber",
+          confidence: 0.58,
+          source: "ocr",
+          needsAdjudication: true
+        }
+      ]
+    });
+
+    expect(result.status).toBe("WARNING");
+    expect(result.warnings).toContainEqual(
+      expect.objectContaining({
+        category: "LOW_CONFIDENCE",
+        field: "licenseNumber"
+      })
+    );
   });
 });

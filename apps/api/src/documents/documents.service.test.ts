@@ -8,6 +8,9 @@ import {
 import { DocumentsService } from "./documents.service";
 import { MockOcrAdapter } from "../infrastructure/mock-ocr.adapter";
 import { DeterministicStructuredExtractionAdapter } from "../infrastructure/deterministic-structured-extraction.adapter";
+import { AamvaPdf417BarcodeAdapter } from "../infrastructure/aamva-pdf417-barcode.adapter";
+import { LocalProcessingQueueAdapter } from "../infrastructure/local-processing-queue.adapter";
+import { ShareSafeRedactionAdapter } from "../infrastructure/share-safe-redaction.adapter";
 
 class MemoryStorage implements DocumentStorageAdapter {
   private readonly files = new Map<string, Uint8Array>();
@@ -56,7 +59,10 @@ describe("DocumentsService", () => {
       new MemoryStorage(),
       new MemoryRepository(),
       new MockOcrAdapter(),
-      new DeterministicStructuredExtractionAdapter()
+      new AamvaPdf417BarcodeAdapter(),
+      new DeterministicStructuredExtractionAdapter(),
+      new ShareSafeRedactionAdapter(),
+      new LocalProcessingQueueAdapter()
     );
 
     const upload = await service.upload({
@@ -80,13 +86,15 @@ REAL ID: Yes
 Confidence: 0.91`)
     });
 
-    const processed = await service.process(upload.id);
+    const processed = await service.processWithRetry(upload.id);
     const summary = await service.dashboardSummary();
 
     expect(processed.status).toBe("PROCESSED");
     expect(processed.validationStatus).toBe("VALID");
     expect(processed.extraction?.licenseNumber).toBe("OH1234567");
     expect(processed.extraction?.issuingState).toBe("OH");
+    expect(processed.redaction?.redactedStorageKey).toBeTruthy();
+    expect(processed.processingJob?.status).toBe("SUCCEEDED");
     expect(summary.documentsProcessed).toBe(1);
     expect(summary.realIdCount).toBe(1);
   });
