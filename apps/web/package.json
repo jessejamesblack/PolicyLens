@@ -1,27 +1,27 @@
 {
-  "name": "@policylens/web",
+  "name": "@driverslicense/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "npm run build --workspace @policylens/domain",
+    "predev": "npm run build --workspace @driverslicense/domain",
     "dev": "vite --host 127.0.0.1",
-    "build": "npm run build --workspace @policylens/domain && vite build",
+    "build": "npm run build --workspace @driverslicense/domain && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run ../../apps/web"
   },
   "dependencies": {
-    "@policylens/domain": "0.1.0",
+    "@driverslicense/domain": "0.1.0",
     "chart.js": "^4.4.7",
     "@lucide/svelte": "^1.23.0"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.8",
     "@sveltejs/kit": "^2.69.1",
-    "@sveltejs/vite-plugin-svelte": "^7.1.2",
+    "@sveltejs/vite-plugin-svelte": "^4.0.4",
     "svelte": "^5.56.4",
     "typescript": "^5.7.0",
-    "vite": "^8.1.3",
+    "vite": "^5.4.21",
     "vitest": "^2.1.8"
   }
 }

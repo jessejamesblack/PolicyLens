@@ -1,5 +1,5 @@
 import type { ChartData } from "chart.js";
-import type { DashboardSummary } from "@policylens/domain";
+import type { DashboardSummary } from "@driverslicense/domain";
 
 const palette = ["#117c73", "#3568a6", "#a66f00", "#6b7280", "#b23b3b"];
 

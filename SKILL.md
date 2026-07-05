@@ -1,10 +1,10 @@
-# PolicyLens Skill
+# DriversLicENSe Skill
 
-Use this skill when working inside the PolicyLens repository.
+Use this skill when working inside the DriversLicENSe repository.
 
 ## Project Shape
 
-PolicyLens is a TypeScript monorepo for synthetic driver license OCR, structured extraction, validation, dashboarding, AWS deployment, and Snowflake-shaped analytics.
+DriversLicENSe is a TypeScript monorepo for synthetic driver license OCR, structured extraction, validation, dashboarding, AWS deployment, and Snowflake-shaped analytics.
 
 Core folders:
 

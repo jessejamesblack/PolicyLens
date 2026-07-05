@@ -4,7 +4,7 @@ import {
   DocumentRepository,
   DocumentStorageAdapter,
   parseDriverLicenseText
-} from "@policylens/domain";
+} from "@driverslicense/domain";
 import { DocumentsService } from "./documents.service";
 import { MockOcrAdapter } from "../infrastructure/mock-ocr.adapter";
 import { DeterministicStructuredExtractionAdapter } from "../infrastructure/deterministic-structured-extraction.adapter";

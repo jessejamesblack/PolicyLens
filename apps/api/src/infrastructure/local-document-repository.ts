@@ -1,4 +1,4 @@
-import { DocumentRecord, DocumentRepository, parseDocumentRecord } from "@policylens/domain";
+import { DocumentRecord, DocumentRepository, parseDocumentRecord } from "@driverslicense/domain";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { dataDir } from "./local-paths";

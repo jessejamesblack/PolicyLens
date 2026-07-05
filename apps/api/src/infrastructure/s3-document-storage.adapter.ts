@@ -1,5 +1,5 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { DocumentStorageAdapter } from "@policylens/domain";
+import { DocumentStorageAdapter } from "@driverslicense/domain";
 import { extname } from "node:path";
 
 export class S3DocumentStorageAdapter implements DocumentStorageAdapter {

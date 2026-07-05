@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { AlertCircle, RefreshCw } from "@lucide/svelte";
-  import type { DashboardSummary } from "@policylens/domain";
+  import AlertCircle from "@lucide/svelte/icons/alert-circle";
+  import RefreshCw from "@lucide/svelte/icons/refresh-cw";
+  import type { DashboardSummary } from "@driverslicense/domain";
   import ChartCanvas from "$lib/ChartCanvas.svelte";
   import { getDashboardSummary } from "$lib/api";
   import {

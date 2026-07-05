@@ -1,4 +1,4 @@
-import { DocumentOcrAdapter, ExtractTextInput, OcrResult } from "@policylens/domain";
+import { DocumentOcrAdapter, ExtractTextInput, OcrResult } from "@driverslicense/domain";
 
 export class MockOcrAdapter implements DocumentOcrAdapter {
   async extractText(input: ExtractTextInput): Promise<OcrResult> {

@@ -1,6 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { DocumentRecord, DocumentRepository, parseDocumentRecord } from "@policylens/domain";
+import { DocumentRecord, DocumentRepository, parseDocumentRecord } from "@driverslicense/domain";
 
 export class DynamoDocumentRepository implements DocumentRepository {
   private readonly tableName = requiredEnv("DOCUMENT_TABLE_NAME");

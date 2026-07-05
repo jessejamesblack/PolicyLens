@@ -1,7 +1,12 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { AlertCircle, FileText, Upload } from "@lucide/svelte";
-  import type { DocumentType } from "@policylens/domain";
+  import AlertCircle from "@lucide/svelte/icons/alert-circle";
+  import Check from "@lucide/svelte/icons/check";
+  import FileSearch from "@lucide/svelte/icons/file-search";
+  import FileText from "@lucide/svelte/icons/file-text";
+  import ScanLine from "@lucide/svelte/icons/scan-line";
+  import Upload from "@lucide/svelte/icons/upload";
+  import type { DocumentType } from "@driverslicense/domain";
   import { processDocument, uploadDocument } from "$lib/api";
 
   const DOCUMENT_TYPE_OPTIONS: DocumentType[] = ["LicenseFront", "LicenseBack", "TemporaryLicense", "LearnerPermit"];
@@ -45,15 +50,40 @@
 <section class="page">
   <div class="page-header">
     <div>
-      <h1>Ingest a driver license scan</h1>
-      <p>Upload a synthetic driver license scan and process it into validated, warehouse-shaped data.</p>
+      <p class="eyebrow">License capture</p>
+      <h1>Scan and verify a driver license</h1>
+      <p>Upload a synthetic license image or PDF, extract the visible fields, and validate the result for analytics.</p>
     </div>
   </div>
+
+  <section class="workflow-card" aria-label="Capture workflow">
+    <div class="workflow-header">
+      <div>
+        <p class="eyebrow">Step 1 of 3</p>
+        <h2>Capture workflow</h2>
+      </div>
+      <span>0 / 1 uploaded</span>
+    </div>
+    <div class="workflow-steps">
+      <div class="workflow-step active">
+        <span><ScanLine size={17} /></span>
+        <strong>Upload</strong>
+      </div>
+      <div class="workflow-step">
+        <span><FileSearch size={17} /></span>
+        <strong>Extract</strong>
+      </div>
+      <div class="workflow-step">
+        <span><Check size={17} /></span>
+        <strong>Validate</strong>
+      </div>
+    </div>
+  </section>
 
   <div class="grid two">
     <section class="panel">
       <div class="panel-header">
-        <h2>Upload</h2>
+        <h2>License upload</h2>
         <FileText size={20} class="muted" />
       </div>
       <div class="panel-body grid">
@@ -82,14 +112,14 @@
 
         <button class="primary" disabled={isSubmitting} on:click={submit}>
           <Upload size={18} />
-          {isSubmitting ? "Processing" : "Upload and process"}
+          {isSubmitting ? "Processing" : "Capture and verify"}
         </button>
       </div>
     </section>
 
     <aside class="panel">
       <div class="panel-header">
-        <h2>Sample set</h2>
+        <h2>Sample coverage</h2>
       </div>
       <div class="panel-body">
         <div class="details-grid">

@@ -2,7 +2,7 @@ import {
   StructuredExtractionAdapter,
   StructuredExtractionInput,
   StructuredLicenseExtraction
-} from "@policylens/domain";
+} from "@driverslicense/domain";
 import { DeterministicStructuredExtractionAdapter } from "./deterministic-structured-extraction.adapter";
 
 export class MockStructuredExtractionAdapter implements StructuredExtractionAdapter {

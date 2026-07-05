@@ -1,6 +1,6 @@
-﻿# PolicyLens
+# DriversLicENSe
 
-PolicyLens is a harness-engineering experiment for synthetic driver license OCR, structured extraction, validation, and analytics. It takes an uploaded license image or PDF, runs OCR, normalizes fields into typed JSON, validates the output with Zod, stores raw plus normalized data, and renders a data quality dashboard.
+DriversLicENSe is a harness-engineering experiment for synthetic driver license OCR, structured extraction, validation, and analytics. It takes an uploaded license image or PDF, runs OCR, normalizes fields into typed JSON, validates the output with Zod, stores raw plus normalized data, and renders a data quality dashboard.
 
 Live site: https://d3damhdwn1rquz.cloudfront.net
 
@@ -10,7 +10,7 @@ Upload-ready synthetic examples live in `samples/upload-pdfs` and `samples/uploa
 
 ## What It Scans
 
-PolicyLens is tuned for driver license style documents:
+DriversLicENSe is tuned for driver license style documents:
 
 - Front-side license scans with name, license number, issuing state, date of birth, issue date, expiration date, address, class, restrictions, endorsements, and physical descriptors.
 - Back-side or barcode-text style scans where OCR can still expose normalized labels.
@@ -41,7 +41,7 @@ Upload
   -> Optional Snowflake analytics model
 ```
 
-The important design choice is raw-plus-normalized persistence. PolicyLens stores OCR output and raw extraction JSON alongside normalized fields so failed, low-confidence, or surprising outputs can be replayed without losing context.
+The important design choice is raw-plus-normalized persistence. DriversLicENSe stores OCR output and raw extraction JSON alongside normalized fields so failed, low-confidence, or surprising outputs can be replayed without losing context.
 
 ## Hosted AWS Version
 
@@ -140,7 +140,7 @@ DOCUMENT_TABLE_NAME=
 
 ## Harness Engineering
 
-PolicyLens uses harness engineering in the OpenAI sense: make the repository legible to coding agents, encode constraints in versioned files, and keep quality checks runnable from one command.
+DriversLicENSe uses harness engineering in the OpenAI sense: make the repository legible to coding agents, encode constraints in versioned files, and keep quality checks runnable from one command.
 
 The harness checks:
 
@@ -176,7 +176,7 @@ GitHub Actions deploys `main` through OIDC. Local deployment is also available w
 $env:AWS_PROFILE = "personal"
 $env:AWS_REGION = "us-east-2"
 npm.cmd run cdk:synth
-npm.cmd run deploy --workspace @policylens/cdk -- --require-approval never
+npm.cmd run deploy --workspace @driverslicense/cdk -- --require-approval never
 ```
 
 CDK outputs:
@@ -196,4 +196,4 @@ More details live in `docs/AWS_DEPLOYMENT.md`.
 - Add Snowflake ingestion from DynamoDB streams or scheduled exports.
 - Add dashboard filters by issuing state, document type, validation status, and expiration bucket.
 
-PolicyLens is not a production identity verification system. It is a compact experimentation surface for OCR, extraction contracts, validation guardrails, cloud deployment, and harness-driven quality loops.
+DriversLicENSe is not a production identity verification system. It is a compact experimentation surface for OCR, extraction contracts, validation guardrails, cloud deployment, and harness-driven quality loops.

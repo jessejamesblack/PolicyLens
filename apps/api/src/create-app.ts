@@ -5,7 +5,7 @@ import { AppModule } from "./app.module";
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
-export async function createPolicyLensApp(): Promise<NestFastifyApplication> {
+export async function createDriversLicenseApp(): Promise<NestFastifyApplication> {
   const adapter = new FastifyAdapter({
     bodyLimit: MAX_UPLOAD_BYTES
   });

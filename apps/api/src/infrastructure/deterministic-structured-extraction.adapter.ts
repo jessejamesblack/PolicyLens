@@ -3,7 +3,7 @@ import {
   StructuredExtractionAdapter,
   StructuredExtractionInput,
   StructuredLicenseExtraction
-} from "@policylens/domain";
+} from "@driverslicense/domain";
 
 export class DeterministicStructuredExtractionAdapter implements StructuredExtractionAdapter {
   async extractFields(input: StructuredExtractionInput): Promise<StructuredLicenseExtraction> {

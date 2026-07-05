@@ -1,6 +1,6 @@
 # Architecture
 
-PolicyLens is organized as a TypeScript workspace with strict, predictable boundaries for synthetic driver license OCR, extraction, validation, and analytics.
+DriversLicENSe is organized as a TypeScript workspace with strict, predictable boundaries for synthetic driver license OCR, extraction, validation, and analytics.
 
 ```text
 samples

@@ -280,8 +280,8 @@ function firstDateAfterAnyLabel(value: string, labels: string[]): string | null 
 }
 
 function inferExpirationDate(dates: string[], dateOfBirth: string | null, under21Until: string | null): string | null {
-  const candidates = dates.filter((date) => date !== dateOfBirth && date !== under21Until);
-  return candidates.at(-1) ?? null;
+  const remainingDates = dates.filter((date) => date !== dateOfBirth && date !== under21Until);
+  return remainingDates.at(-1) ?? null;
 }
 
 function inferIssueDate(

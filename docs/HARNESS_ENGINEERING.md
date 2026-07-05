@@ -1,6 +1,6 @@
 # Harness Engineering
 
-PolicyLens uses harness engineering in the sense described by OpenAI's "Harness engineering: leveraging Codex in an agent-first world": the scarce resource is human attention, so the repository should make intent, constraints, feedback, and quality checks legible to coding agents.
+DriversLicENSe uses harness engineering in the sense described by OpenAI's "Harness engineering: leveraging Codex in an agent-first world": the scarce resource is human attention, so the repository should make intent, constraints, feedback, and quality checks legible to coding agents.
 
 Source: https://openai.com/index/harness-engineering/
 
@@ -13,7 +13,7 @@ Source: https://openai.com/index/harness-engineering/
 - Architecture and taste should be enforced mechanically wherever possible.
 - Entropy should be removed continuously with small checks and refactors.
 
-## PolicyLens Harnesses
+## DriversLicENSe Harnesses
 
 - Extraction harness: `npm.cmd run harness` checks golden synthetic license samples, expected fields, warning categories, validation status, and dashboard totals.
 - Architecture harness: `npm.cmd run check:architecture` checks dependency boundaries, required docs, and forbidden project-framing language.

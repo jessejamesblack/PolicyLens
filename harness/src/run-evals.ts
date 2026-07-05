@@ -6,7 +6,7 @@ import {
   validateStructuredExtraction,
   ValidationStatus,
   WarningCategory
-} from "@policylens/domain";
+} from "@driverslicense/domain";
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 

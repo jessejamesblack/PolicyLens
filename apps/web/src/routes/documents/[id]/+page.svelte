@@ -1,7 +1,9 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import { AlertCircle, CheckCircle2, RefreshCw } from "@lucide/svelte";
-  import type { DocumentRecord, StructuredLicenseExtraction } from "@policylens/domain";
+  import AlertCircle from "@lucide/svelte/icons/alert-circle";
+  import CheckCircle2 from "@lucide/svelte/icons/check-circle-2";
+  import RefreshCw from "@lucide/svelte/icons/refresh-cw";
+  import type { DocumentRecord, StructuredLicenseExtraction } from "@driverslicense/domain";
   import { getDocument, processDocument } from "$lib/api";
   import { percent } from "$lib/chartData";
 

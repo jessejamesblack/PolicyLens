@@ -1,5 +1,5 @@
 import { DetectDocumentTextCommand, TextractClient } from "@aws-sdk/client-textract";
-import { DocumentOcrAdapter, ExtractTextInput, OcrResult } from "@policylens/domain";
+import { DocumentOcrAdapter, ExtractTextInput, OcrResult } from "@driverslicense/domain";
 
 export class TextractOcrAdapter implements DocumentOcrAdapter {
   private readonly client = new TextractClient({

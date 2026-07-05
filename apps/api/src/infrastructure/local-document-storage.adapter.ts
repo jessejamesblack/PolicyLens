@@ -1,4 +1,4 @@
-import { DocumentStorageAdapter } from "@policylens/domain";
+import { DocumentStorageAdapter } from "@driverslicense/domain";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { extname, join } from "node:path";
 import { dataDir } from "./local-paths";

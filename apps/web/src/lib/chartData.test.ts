@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { DashboardSummary } from "@policylens/domain";
+import type { DashboardSummary } from "@driverslicense/domain";
 import { documentsByIssuingStateChart, percent } from "./chartData";
 
 describe("chartData", () => {

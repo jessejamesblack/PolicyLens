@@ -1,8 +1,8 @@
 {
-  "name": "policylens",
+  "name": "driverslicense",
   "version": "0.1.0",
   "private": true,
-  "description": "AI-assisted driver license OCR, validation, and data quality dashboard.",
+  "description": "Driver license OCR, validation, and data quality dashboard.",
   "workspaces": [
     "apps/*",
     "packages/*",
@@ -10,14 +10,14 @@
     "harness"
   ],
   "scripts": {
-    "build": "npm run build --workspace @policylens/domain && npm run build --workspace @policylens/api && npm run build --workspace @policylens/web && npm run build --workspace @policylens/cdk && npm run build --workspace @policylens/harness",
+    "build": "npm run build --workspace @driverslicense/domain && npm run build --workspace @driverslicense/api && npm run build --workspace @driverslicense/web && npm run build --workspace @driverslicense/cdk && npm run build --workspace @driverslicense/harness",
     "check:architecture": "node tools/check-architecture.mjs",
-    "test": "npm run check:architecture && npm run build --workspace @policylens/domain && vitest run",
+    "test": "npm run check:architecture && npm run build --workspace @driverslicense/domain && vitest run",
     "verify": "npm run check:architecture && npm run build && npm test && npm run harness && npm run cdk:synth",
-    "dev:api": "npm run dev --workspace @policylens/api",
-    "dev:web": "npm run dev --workspace @policylens/web",
-    "harness": "npm run eval --workspace @policylens/harness",
-    "cdk:synth": "npm run synth --workspace @policylens/cdk"
+    "dev:api": "npm run dev --workspace @driverslicense/api",
+    "dev:web": "npm run dev --workspace @driverslicense/web",
+    "harness": "npm run eval --workspace @driverslicense/harness",
+    "cdk:synth": "npm run synth --workspace @driverslicense/cdk"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

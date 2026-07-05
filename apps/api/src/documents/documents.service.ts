@@ -8,7 +8,7 @@ import {
   DocumentType,
   StructuredExtractionAdapter,
   validateStructuredExtraction
-} from "@policylens/domain";
+} from "@driverslicense/domain";
 import { randomUUID } from "node:crypto";
 import {
   DOCUMENT_REPOSITORY,

@@ -1,6 +1,6 @@
-# PolicyLens Agent Notes
+# DriversLicENSe Agent Notes
 
-PolicyLens is a harness-engineering experiment for synthetic driver license OCR, extraction validation, and dashboard analytics.
+DriversLicENSe is a harness-engineering experiment for synthetic driver license OCR, extraction validation, and dashboard analytics.
 
 Use these defaults unless the user says otherwise:
 

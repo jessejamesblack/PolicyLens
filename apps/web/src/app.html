@@ -3,10 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DriversLicENSe</title>
     <script>
       (() => {
         try {
-          const storedTheme = localStorage.getItem("policylens-theme");
+          const storedTheme = localStorage.getItem("driverslicense-theme");
           const preferredTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
           document.documentElement.dataset.theme = storedTheme || preferredTheme;
         } catch {

@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: policylens-deploy
+  group: driverslicense-deploy
   cancel-in-progress: false
 
 env:
@@ -46,7 +46,7 @@ jobs:
           mask-aws-account-id: true
 
       - name: Bootstrap CDK
-        run: npm run bootstrap --workspace @policylens/cdk
+        run: npm run bootstrap --workspace @driverslicense/cdk
 
       - name: Deploy CDK stack
-        run: npm run deploy --workspace @policylens/cdk -- --require-approval never
+        run: npm run deploy --workspace @driverslicense/cdk -- --require-approval never

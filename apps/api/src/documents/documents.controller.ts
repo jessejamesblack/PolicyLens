@@ -7,7 +7,7 @@ import {
   Post,
   Req
 } from "@nestjs/common";
-import { DOCUMENT_TYPES, documentTypeSchema } from "@policylens/domain";
+import { DOCUMENT_TYPES, documentTypeSchema } from "@driverslicense/domain";
 import { DocumentsService } from "./documents.service";
 
 type MultipartFilePart = {

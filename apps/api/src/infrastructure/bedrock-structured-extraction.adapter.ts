@@ -2,7 +2,7 @@ import {
   StructuredExtractionAdapter,
   StructuredExtractionInput,
   StructuredLicenseExtraction
-} from "@policylens/domain";
+} from "@driverslicense/domain";
 
 export class BedrockStructuredExtractionAdapter implements StructuredExtractionAdapter {
   async extractFields(_input: StructuredExtractionInput): Promise<StructuredLicenseExtraction> {

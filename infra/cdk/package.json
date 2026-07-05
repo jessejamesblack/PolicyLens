@@ -1,10 +1,10 @@
 {
-  "name": "@policylens/cdk",
+  "name": "@driverslicense/cdk",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "synth": "npm run build --workspace @policylens/domain && npm run build --workspace @policylens/api && npm run build --workspace @policylens/web && npm run build && cdk synth",
+    "synth": "npm run build --workspace @driverslicense/domain && npm run build --workspace @driverslicense/api && npm run build --workspace @driverslicense/web && npm run build && cdk synth",
     "bootstrap": "cdk bootstrap",
     "deploy": "npm run synth && cdk deploy",
     "destroy": "cdk destroy"

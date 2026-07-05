@@ -1,12 +1,12 @@
 import "reflect-metadata";
 import awsLambdaFastify from "@fastify/aws-lambda";
 import { Handler } from "aws-lambda";
-import { createPolicyLensApp } from "./create-app";
+import { createDriversLicenseApp } from "./create-app";
 
 let cachedHandler: Handler | undefined;
 
 async function bootstrap(): Promise<Handler> {
-  const app = await createPolicyLensApp();
+  const app = await createDriversLicenseApp();
   const fastifyApp = app.getHttpAdapter().getInstance();
   const proxy = awsLambdaFastify(fastifyApp as never) as Handler;
   await app.init();

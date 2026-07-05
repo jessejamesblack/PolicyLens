@@ -1,10 +1,10 @@
 {
-  "name": "@policylens/api",
+  "name": "@driverslicense/api",
   "version": "0.1.0",
   "private": true,
   "main": "dist/main.js",
   "scripts": {
-    "predev": "npm run build --workspace @policylens/domain",
+    "predev": "npm run build --workspace @driverslicense/domain",
     "dev": "tsx watch src/main.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
@@ -20,7 +20,7 @@
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-fastify": "^11.1.27",
-    "@policylens/domain": "0.1.0",
+    "@driverslicense/domain": "0.1.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

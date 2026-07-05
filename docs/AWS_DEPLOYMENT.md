@@ -1,6 +1,6 @@
 # AWS Deployment
 
-PolicyLens deploys with AWS CDK. The stack publishes the SvelteKit static site through CloudFront and routes API paths to the Lambda-hosted NestJS API for synthetic driver license processing.
+DriversLicENSe deploys with AWS CDK. The stack publishes the SvelteKit static site through CloudFront and routes API paths to the Lambda-hosted NestJS API for synthetic driver license processing.
 
 ## Local AWS CLI
 
@@ -36,8 +36,8 @@ Verify the active identity before deploying:
 ```powershell
 $env:AWS_PROFILE = "personal"
 $env:AWS_REGION = "us-east-2"
-npm.cmd run bootstrap --workspace @policylens/cdk
-npm.cmd run deploy --workspace @policylens/cdk -- --require-approval never
+npm.cmd run bootstrap --workspace @driverslicense/cdk
+npm.cmd run deploy --workspace @driverslicense/cdk -- --require-approval never
 ```
 
 ## GitHub Actions Deploy
@@ -50,7 +50,7 @@ The repository has two workflows:
 The deploy workflow expects one GitHub secret:
 
 ```text
-AWS_DEPLOY_ROLE_ARN=arn:aws:iam::<AWS_ACCOUNT_ID>:role/PolicyLensGithubDeployRole
+AWS_DEPLOY_ROLE_ARN=arn:aws:iam::<AWS_ACCOUNT_ID>:role/DriversLicENSeGithubDeployRole
 ```
 
 ## AWS OIDC Setup
@@ -78,7 +78,7 @@ Create a deploy role with this trust policy, replacing `<AWS_ACCOUNT_ID>` if you
       "Condition": {
         "StringEquals": {
           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-          "token.actions.githubusercontent.com:sub": "repo:jessejamesblack/PolicyLens:ref:refs/heads/main"
+          "token.actions.githubusercontent.com:sub": "repo:jessejamesblack/DriversLicENSe:ref:refs/heads/main"
         }
       }
     }
@@ -86,7 +86,7 @@ Create a deploy role with this trust policy, replacing `<AWS_ACCOUNT_ID>` if you
 }
 ```
 
-For a compact experimentation account, the simplest initial path is attaching `AdministratorAccess` to `PolicyLensGithubDeployRole`, then tightening permissions after the stack stabilizes. Use a dedicated AWS account or budget-limited sandbox for this project.
+For a compact experimentation account, the simplest initial path is attaching `AdministratorAccess` to `DriversLicENSeGithubDeployRole`, then tightening permissions after the stack stabilizes. Use a dedicated AWS account or budget-limited sandbox for this project.
 
 After the role exists, add the role ARN to the repository secret named `AWS_DEPLOY_ROLE_ARN`.
 
