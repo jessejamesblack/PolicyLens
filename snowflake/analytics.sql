@@ -28,6 +28,18 @@ FROM DOCUMENT_EXTRACTIONS
 GROUP BY issuing_state
 ORDER BY issuing_state;
 
+-- Physical descriptor coverage
+SELECT
+  issuing_state,
+  COUNT_IF(sex IS NOT NULL) AS sex_count,
+  COUNT_IF(height IS NOT NULL) AS height_count,
+  COUNT_IF(weight IS NOT NULL) AS weight_count,
+  COUNT_IF(eye_color IS NOT NULL) AS eye_color_count,
+  COUNT_IF(hair_color IS NOT NULL) AS hair_color_count
+FROM DOCUMENT_EXTRACTIONS
+GROUP BY issuing_state
+ORDER BY issuing_state;
+
 -- Expiration buckets
 SELECT
   CASE

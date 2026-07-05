@@ -39,7 +39,9 @@ export interface StructuredLicenseExtraction {
   restrictions: string[];
   sex: string | null;
   height: string | null;
+  weight: string | null;
   eyeColor: string | null;
+  hairColor: string | null;
   organDonor: boolean | null;
   veteran: boolean | null;
   realId: boolean | null;

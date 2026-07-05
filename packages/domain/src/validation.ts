@@ -13,6 +13,7 @@ export function validateStructuredExtraction(
 ): ValidatedExtraction {
   const warnings: ValidationWarning[] = [...input.warnings];
   const parsed = structuredLicenseExtractionSchema.safeParse(input);
+  const extraction = parsed.success ? parsed.data : input;
 
   if (!parsed.success) {
     for (const issue of parsed.error.issues) {
@@ -96,7 +97,7 @@ export function validateStructuredExtraction(
 
   return {
     extraction: {
-      ...input,
+      ...extraction,
       warnings: dedupedWarnings
     },
     status,

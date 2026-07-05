@@ -23,7 +23,9 @@ const currentRecord: DocumentRecord = {
     restrictions: ["Corrective lenses"],
     sex: "X",
     height: "5-09",
+    weight: "175",
     eyeColor: "BRO",
+    hairColor: "BRO",
     organDonor: true,
     veteran: false,
     realId: true,
@@ -50,5 +52,21 @@ describe("parseDocumentRecord", () => {
         extraction: { unsupported: true }
       })
     ).toBeNull();
+  });
+
+  it("normalizes older records that predate weight and hair color fields", () => {
+    const legacyRecord = {
+      ...currentRecord,
+      extraction: {
+        ...currentRecord.extraction,
+        weight: undefined,
+        hairColor: undefined
+      }
+    };
+
+    expect(parseDocumentRecord(legacyRecord)?.extraction).toMatchObject({
+      weight: null,
+      hairColor: null
+    });
   });
 });

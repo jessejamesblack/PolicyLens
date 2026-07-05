@@ -104,7 +104,9 @@
               <div class="detail-item"><span>Restrictions</span><strong>{formatList(extraction.restrictions)}</strong></div>
               <div class="detail-item"><span>Sex</span><strong>{extraction.sex ?? "Missing"}</strong></div>
               <div class="detail-item"><span>Height</span><strong>{extraction.height ?? "Missing"}</strong></div>
+              <div class="detail-item"><span>Weight</span><strong>{extraction.weight ?? "Missing"}</strong></div>
               <div class="detail-item"><span>Eye color</span><strong>{extraction.eyeColor ?? "Missing"}</strong></div>
+              <div class="detail-item"><span>Hair color</span><strong>{extraction.hairColor ?? "Missing"}</strong></div>
               <div class="detail-item"><span>Organ donor</span><strong>{formatBoolean(extraction.organDonor)}</strong></div>
               <div class="detail-item"><span>Veteran</span><strong>{formatBoolean(extraction.veteran)}</strong></div>
               <div class="detail-item"><span>REAL ID</span><strong>{formatBoolean(extraction.realId)}</strong></div>

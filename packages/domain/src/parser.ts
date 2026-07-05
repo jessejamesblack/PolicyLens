@@ -12,28 +12,34 @@ export function parseDriverLicenseText(input: {
   const licenseNumber = findLicenseNumber(text);
   const issuingState =
     normalizeState(findString(text, ["Issuing State", "State", "Jurisdiction"])) ??
+    inferStateFromText(text) ??
     inferStateFromLicenseNumber(licenseNumber);
   const dateOfBirth =
     normalizeDate(findString(text, ["Date of Birth", "DOB", "Birth Date"])) ??
-    findDateNearLabel(text, ["Date of Birth", "DOB", "Birth Date"]);
+    findDateNearLabel(text, ["Date of Birth", "Birth Date", "3 DOB", "DOB"]);
   const under21Until =
     normalizeDate(findString(text, ["Under 21 Until", "Under 21", "Turns 21"])) ??
     findDateNearLabel(text, ["Under 21 Until", "Under 21", "Turns 21"]);
   const expirationDate =
     normalizeDate(findString(text, ["Expiration Date", "Expires", "EXP"])) ??
-    findDateNearLabel(text, ["Expiration Date", "Expiration", "Expires", "EXP"]) ??
+    findDateNearLabel(text, ["Expiration Date", "Expiration", "Expires", "4b Exp", "EXP"]) ??
     inferExpirationDate(dates, dateOfBirth, under21Until);
   const issueDate =
     normalizeDate(findString(text, ["Issue Date", "Issued", "ISS", "Issue"])) ??
+    findDateOnLabelLine(text, ["Issue Date", "Issued", "4a Iss", "ISS", "Issue"]) ??
     inferIssueDate(dates, dateOfBirth, expirationDate, under21Until);
-  const address = findString(text, ["Address", "Residence Address", "Street Address"]);
-  const licenseClass = findString(text, ["License Class", "Class"]);
+  const address = findString(text, ["Address", "Residence Address", "Street Address"]) ?? findDmvAddress(text);
+  const licenseClass = findString(text, ["License Class", "Class"]) ?? findDmvCodeValue(text, ["9 Class"]);
   const endorsements = findList(text, ["Endorsements", "Endorsement"]);
+  const dmvEndorsements = findDmvCodeList(text, ["9a End", "9a Endorsement", "9a Endorsements"]);
   const restrictions = findList(text, ["Restrictions", "Restriction"]);
-  const sex = findString(text, ["Sex", "Gender"]);
-  const height = findString(text, ["Height", "HGT"]);
-  const eyeColor = findString(text, ["Eye Color", "Eyes", "EYE"]);
-  const organDonor = findBoolean(text, ["Organ Donor", "Donor"]);
+  const dmvRestrictions = findDmvCodeList(text, ["12 Res", "12 Restriction", "12 Restrictions"]);
+  const sex = findString(text, ["Sex", "Gender"]) ?? findDmvCodeValue(text, ["15 Sex"]);
+  const height = findString(text, ["Height", "HGT"]) ?? findDmvCodeValue(text, ["16 Hgt", "16 Height"]);
+  const weight = findString(text, ["Weight", "WGT"]) ?? findDmvCodeValue(text, ["17 Wgt", "17 Weight"]);
+  const eyeColor = findString(text, ["Eye Color", "Eyes", "EYE"]) ?? findDmvCodeValue(text, ["18 Eyes", "18 Eye"]);
+  const hairColor = findString(text, ["Hair Color", "Hair"]) ?? findDmvCodeValue(text, ["19 Hair"]);
+  const organDonor = findBoolean(text, ["Organ Donor", "Donor"]) ?? inferOrganDonor(text);
   const veteran = findBoolean(text, ["Veteran"]);
   const realId = findBoolean(text, ["REAL ID", "Real ID", "Real ID Compliant"]) ?? inferRealId(text);
   const referenceDate = toDate(input.referenceDate ?? new Date());
@@ -50,11 +56,13 @@ export function parseDriverLicenseText(input: {
     expirationDate,
     address,
     licenseClass,
-    endorsements,
-    restrictions,
+    endorsements: endorsements.length ? endorsements : dmvEndorsements,
+    restrictions: restrictions.length ? restrictions : dmvRestrictions,
     sex,
     height,
+    weight,
     eyeColor,
+    hairColor,
     organDonor,
     veteran,
     realId,
@@ -106,12 +114,23 @@ function findFullName(text: string): string | null {
     return `${firstName} ${lastName}`;
   }
 
+  const dmvName = findDmvCodedName(text);
+  if (dmvName) {
+    return dmvName;
+  }
+
+  const standaloneName = findStandaloneName(text);
+  if (standaloneName) {
+    return standaloneName;
+  }
+
   return text.match(/\b[A-Z][a-z]+ [A-Z][a-z]+ Sample\b/)?.[0] ?? null;
 }
 
 function findLicenseNumber(text: string): string | null {
   return (
     findString(text, ["License Number", "DL Number", "Driver License Number", "Document Number", "ID Number"]) ??
+    findDmvLicenseNumber(text) ??
     text.match(/\b[A-Z]{1,3}[0-9]{5,12}\b/)?.[0] ??
     null
   );
@@ -123,7 +142,11 @@ function normalizeState(value: string | null): string | null {
   }
 
   const match = value.toUpperCase().match(/\b[A-Z]{2}\b/);
-  return match?.[0] ?? null;
+  if (match?.[0] && STATE_CODES.has(match[0])) {
+    return match[0];
+  }
+
+  return findStateName(value);
 }
 
 function inferStateFromLicenseNumber(licenseNumber: string | null): string | null {
@@ -132,6 +155,27 @@ function inferStateFromLicenseNumber(licenseNumber: string | null): string | nul
   }
 
   return licenseNumber.match(/^[A-Z]{2}/)?.[0] ?? null;
+}
+
+function inferStateFromText(text: string): string | null {
+  for (const line of text.split("\n")) {
+    const stateName = findStateName(line);
+    if (stateName) {
+      return stateName;
+    }
+
+    const addressState = line.match(/,\s*([A-Z]{2})\s+\d{5}(?:-\d{4})?\b/);
+    if (addressState?.[1] && STATE_CODES.has(addressState[1])) {
+      return addressState[1];
+    }
+
+    const compactState = line.match(/\b([A-Z]{2})\s+USA\b/);
+    if (compactState?.[1] && STATE_CODES.has(compactState[1])) {
+      return compactState[1];
+    }
+  }
+
+  return null;
 }
 
 function normalizeDate(value: string | null): string | null {
@@ -178,7 +222,7 @@ function findDateNearLabel(text: string, labels: string[]): string | null {
       continue;
     }
 
-    const sameLineDate = firstDateIn(lines[index]);
+    const sameLineDate = firstDateAfterAnyLabel(lines[index], labels) ?? firstDateIn(lines[index]);
     if (sameLineDate) {
       return sameLineDate;
     }
@@ -194,9 +238,45 @@ function findDateNearLabel(text: string, labels: string[]): string | null {
   return null;
 }
 
+function findDateOnLabelLine(text: string, labels: string[]): string | null {
+  const lines = text.split("\n");
+
+  for (const line of lines) {
+    const normalizedLine = normalizeLabel(line);
+
+    if (!labels.some((label) => normalizedLine.includes(normalizeLabel(label)))) {
+      continue;
+    }
+
+    const sameLineDate = firstDateAfterAnyLabel(line, labels);
+    if (sameLineDate) {
+      return sameLineDate;
+    }
+  }
+
+  return null;
+}
+
 function firstDateIn(value: string): string | null {
   const match = value.match(/\b(\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4})\b/);
   return match?.[1] ? normalizeDate(match[1]) : null;
+}
+
+function firstDateAfterAnyLabel(value: string, labels: string[]): string | null {
+  for (const label of labels) {
+    const labelPattern = labelToPattern(label);
+    const pattern = new RegExp(
+      `(?:^|[^A-Za-z0-9])${labelPattern}\\s*(?:Date)?\\s*(?::|-)?\\s*(\\d{4}-\\d{2}-\\d{2}|\\d{1,2}\\/\\d{1,2}\\/\\d{4})`,
+      "i"
+    );
+    const match = value.match(pattern);
+
+    if (match?.[1]) {
+      return normalizeDate(match[1]);
+    }
+  }
+
+  return null;
 }
 
 function inferExpirationDate(dates: string[], dateOfBirth: string | null, under21Until: string | null): string | null {
@@ -221,6 +301,18 @@ function findList(text: string, labels: string[]): string[] {
 
   return value
     .split(/[,;/|]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function findDmvCodeList(text: string, labels: string[]): string[] {
+  const value = findDmvCodeValue(text, labels);
+  if (!value || /^(none|n\/a|not applicable)$/i.test(value)) {
+    return [];
+  }
+
+  return value
+    .split(/[,;/| ]+/)
     .map((item) => item.trim())
     .filter(Boolean);
 }
@@ -250,6 +342,14 @@ function inferRealId(text: string): boolean | null {
   return null;
 }
 
+function inferOrganDonor(text: string): boolean | null {
+  return text
+    .split("\n")
+    .some((line) => /^DONOR\b/i.test(cleanupValue(line)) || /\bORGAN DONOR\b/i.test(line))
+    ? true
+    : null;
+}
+
 function findConfidence(text: string): number | null {
   const match = text.match(/Confidence\s*[:\-]\s*(0?\.\d+|1(?:\.0)?|\d{1,3}%)/i);
   const standalone = findValueAfterStandaloneLabel(text, ["Confidence"], isConfidenceLike);
@@ -268,6 +368,130 @@ function findConfidence(text: string): number | null {
 
 function cleanupValue(value: string): string {
   return value.split("\n")[0].replace(/\s+/g, " ").trim().replace(/[.;]$/, "");
+}
+
+function findDmvLicenseNumber(text: string): string | null {
+  for (const line of text.split("\n")) {
+    const match = line.match(/\b(?:4d\s+)?DLN\s+([A-Z0-9][A-Z0-9-]{3,})\b/i);
+    if (match?.[1]) {
+      return cleanupValue(match[1]).toUpperCase();
+    }
+  }
+
+  return null;
+}
+
+function findDmvCodedName(text: string): string | null {
+  const lines = text.split("\n").map(cleanupValue).filter(Boolean);
+  const familyName = findLineCodeValue(lines, "1");
+  const givenName = findLineCodeValue(lines, "2");
+
+  if (familyName && givenName && isLikelyPersonNamePart(familyName) && isLikelyPersonNamePart(givenName)) {
+    return `${toPersonCase(givenName)} ${toPersonCase(familyName)}`;
+  }
+
+  return null;
+}
+
+function findStandaloneName(text: string): string | null {
+  for (const line of text.split("\n").map(cleanupValue).filter(Boolean)) {
+    if (isNoiseOrLabel(line)) {
+      continue;
+    }
+
+    if (/[a-z]/.test(line) && isLikelyName(line)) {
+      return line;
+    }
+  }
+
+  return null;
+}
+
+function findLineCodeValue(lines: string[], code: string): string | null {
+  const pattern = new RegExp(`^${escapeRegExp(code)}\\s+(.+)$`, "i");
+
+  for (const line of lines) {
+    const match = line.match(pattern);
+    if (match?.[1]) {
+      return cleanupDmvValue(match[1]);
+    }
+  }
+
+  return null;
+}
+
+function findDmvCodeValue(text: string, labels: string[]): string | null {
+  for (const line of text.split("\n").map(cleanupValue).filter(Boolean)) {
+    for (const label of labels) {
+      const labelPattern = labelToPattern(label);
+      const pattern = new RegExp(`(?:^|[^A-Za-z0-9])${labelPattern}\\s+(.+)$`, "i");
+      const match = line.match(pattern);
+
+      if (match?.[1]) {
+        return cleanupDmvValue(match[1]);
+      }
+    }
+  }
+
+  return null;
+}
+
+function findDmvAddress(text: string): string | null {
+  const lines = text.split("\n").map(cleanupValue).filter(Boolean);
+  const addressParts: string[] = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const firstPart = lines[index].match(/^8\s+(.+)$/i)?.[1];
+    if (!firstPart) {
+      continue;
+    }
+
+    addressParts.push(cleanupDmvValue(firstPart));
+
+    for (const line of lines.slice(index + 1)) {
+      if (isDmvFieldLine(line) || isNoiseOrLabel(line)) {
+        break;
+      }
+
+      if (looksLikeAddressLine(line)) {
+        addressParts.push(cleanupDmvValue(line));
+      }
+    }
+
+    break;
+  }
+
+  if (addressParts.length === 0) {
+    return null;
+  }
+
+  return addressParts.map(formatAddressPart).join(", ");
+}
+
+function isDmvFieldLine(value: string): boolean {
+  return /^(?:1|2|3|4a|4b|4d|5|9|9a|12|15|16|17|18|19)\b/i.test(value);
+}
+
+function looksLikeAddressLine(value: string): boolean {
+  return (
+    /\b(?:APT|STE|UNIT|PO BOX|DRIVE|DR|STREET|ST|ROAD|RD|LANE|LN|AVE|AVENUE|BLVD|WAY|COURT|CT)\b/i.test(value) ||
+    /,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?\b/.test(value)
+  );
+}
+
+function cleanupDmvValue(value: string): string {
+  return cleanupValue(value).replace(/^(?:DLN|Iss|Exp|DOB|Class|End|Res|Sex|Hgt|Wgt|Eyes|Hair)\s+/i, "");
+}
+
+function formatAddressPart(value: string): string {
+  if (/,/.test(value)) {
+    return value.replace(/^([^,]+),\s*([A-Z]{2})\s+(\d{5}(?:-\d{4})?)$/i, (_match, city, state, postal) => {
+      const stateCode = String(state).toUpperCase();
+      return `${toTitleCase(city)}, ${stateCode} ${postal}`;
+    });
+  }
+
+  return toTitleCase(value);
 }
 
 function findValueAfterStandaloneLabel(
@@ -301,6 +525,10 @@ function findValueAfterStandaloneLabel(
 
 function isLikelyName(value: string): boolean {
   return /^[A-Z][A-Za-z'-]+ [A-Z][A-Za-z'-]+(?: [A-Z][A-Za-z'-]+)?$/.test(value);
+}
+
+function isLikelyPersonNamePart(value: string): boolean {
+  return /^[A-Za-z][A-Za-z'-]+$/.test(value) && !isNoiseOrLabel(value);
 }
 
 function isBooleanLike(value: string): boolean {
@@ -347,6 +575,32 @@ function normalizeLabel(value: string): string {
   return value.replace(/[^A-Za-z0-9]+/g, " ").trim().replace(/\s+/g, " ").toUpperCase();
 }
 
+function toPersonCase(value: string): string {
+  return value
+    .toLowerCase()
+    .split(/([ '-])/)
+    .map((part) => (/^[a-z]/.test(part) ? part[0].toUpperCase() + part.slice(1) : part))
+    .join("");
+}
+
+function toTitleCase(value: string): string {
+  return value
+    .toLowerCase()
+    .split(" ")
+    .map((part) => {
+      if (/^(apt|ste|unit|po|box)$/i.test(part)) {
+        return part.toUpperCase();
+      }
+
+      if (/^[a-z]/.test(part)) {
+        return part[0].toUpperCase() + part.slice(1);
+      }
+
+      return part;
+    })
+    .join(" ");
+}
+
 function calculateAge(dateOfBirth: string, referenceDate: Date): number {
   const [birthYear, birthMonth, birthDay] = dateOfBirth.split("-").map(Number);
   let age = referenceDate.getUTCFullYear() - birthYear;
@@ -374,4 +628,75 @@ function toDate(value: Date | string): Date {
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function labelToPattern(value: string): string {
+  return escapeRegExp(value).replace(/\s+/g, "[^A-Za-z0-9]+");
+}
+
+const STATE_NAME_TO_CODE: Record<string, string> = {
+  ALABAMA: "AL",
+  ALASKA: "AK",
+  ARIZONA: "AZ",
+  ARKANSAS: "AR",
+  CALIFORNIA: "CA",
+  COLORADO: "CO",
+  CONNECTICUT: "CT",
+  DELAWARE: "DE",
+  FLORIDA: "FL",
+  GEORGIA: "GA",
+  HAWAII: "HI",
+  IDAHO: "ID",
+  ILLINOIS: "IL",
+  INDIANA: "IN",
+  IOWA: "IA",
+  KANSAS: "KS",
+  KENTUCKY: "KY",
+  LOUISIANA: "LA",
+  MAINE: "ME",
+  MARYLAND: "MD",
+  MASSACHUSETTS: "MA",
+  MICHIGAN: "MI",
+  MINNESOTA: "MN",
+  MISSISSIPPI: "MS",
+  MISSOURI: "MO",
+  MONTANA: "MT",
+  NEBRASKA: "NE",
+  NEVADA: "NV",
+  "NEW HAMPSHIRE": "NH",
+  "NEW JERSEY": "NJ",
+  "NEW MEXICO": "NM",
+  "NEW YORK": "NY",
+  "NORTH CAROLINA": "NC",
+  "NORTH DAKOTA": "ND",
+  OHIO: "OH",
+  OKLAHOMA: "OK",
+  OREGON: "OR",
+  PENNSYLVANIA: "PA",
+  "RHODE ISLAND": "RI",
+  "SOUTH CAROLINA": "SC",
+  "SOUTH DAKOTA": "SD",
+  TENNESSEE: "TN",
+  TEXAS: "TX",
+  UTAH: "UT",
+  VERMONT: "VT",
+  VIRGINIA: "VA",
+  WASHINGTON: "WA",
+  "WEST VIRGINIA": "WV",
+  WISCONSIN: "WI",
+  WYOMING: "WY"
+};
+
+const STATE_CODES = new Set(Object.values(STATE_NAME_TO_CODE));
+
+function findStateName(value: string): string | null {
+  const normalized = normalizeLabel(value);
+
+  for (const [stateName, stateCode] of Object.entries(STATE_NAME_TO_CODE)) {
+    if (new RegExp(`\\b${escapeRegExp(stateName)}\\b`).test(normalized)) {
+      return stateCode;
+    }
+  }
+
+  return null;
 }

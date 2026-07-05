@@ -1,0 +1,27 @@
+{
+  "documentType": "LicenseFront",
+  "expectedStatus": "WARNING",
+  "extraction": {
+    "fullName": "Avery Sample",
+    "licenseNumber": "1234-56-7890",
+    "issuingState": "IN",
+    "dateOfBirth": "1956-04-07",
+    "issueDate": "2006-04-07",
+    "expirationDate": "2012-04-07",
+    "address": "123 Sample Drive, APT B, Indianapolis, IN 46204-0000",
+    "licenseClass": null,
+    "endorsements": ["P"],
+    "restrictions": ["AD"],
+    "sex": "M",
+    "height": "5-08",
+    "weight": "165",
+    "eyeColor": "BRO",
+    "hairColor": "BRO",
+    "organDonor": true,
+    "realId": null,
+    "ageAtScan": 70,
+    "isExpired": true,
+    "confidenceScore": 0.86
+  },
+  "warningCategories": ["EXPIRED_LICENSE"]
+}

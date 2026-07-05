@@ -22,7 +22,7 @@ General license facts modeled by the app:
 - Issuing state matters because U.S. driver licenses are issued by states and territories, not one central national issuer.
 - DOB is useful for age-at-scan, under-21 warnings, and age-bucket analytics.
 - Expiration date drives validity warnings and operational expiration buckets.
-- REAL ID, organ donor, veteran, restrictions, endorsements, class, sex, height, and eye color are common fields or markers that can become useful structured data.
+- REAL ID, organ donor, veteran, restrictions, endorsements, class, sex, height, weight, eye color, and hair color are common fields or markers that can become useful structured data.
 - Back-side scans often include machine-readable data; this project treats OCR text as the stable boundary and keeps barcode parsing as a future adapter.
 
 ## Architecture
@@ -164,7 +164,7 @@ npm.cmd run verify
 
 ## Snowflake Model
 
-`snowflake/schema.sql` defines `DOCUMENT_EXTRACTIONS` with normalized license fields, validation metadata, and raw extraction JSON. `snowflake/analytics.sql` includes queries for issuing-state volume, confidence, warning categories, expiration buckets, and license facts such as REAL ID, organ donor, veteran, expired, and under-21 counts.
+`snowflake/schema.sql` defines `DOCUMENT_EXTRACTIONS` with normalized license fields, validation metadata, and raw extraction JSON. `snowflake/analytics.sql` includes queries for issuing-state volume, confidence, warning categories, expiration buckets, physical descriptor coverage, and license facts such as REAL ID, organ donor, veteran, expired, and under-21 counts.
 
 DynamoDB is useful for workflow state. Snowflake is the better fit for analytics, trend monitoring, and downstream reporting.
 

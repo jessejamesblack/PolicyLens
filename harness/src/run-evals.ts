@@ -13,7 +13,7 @@ import { join, resolve } from "node:path";
 interface ExpectedFixture {
   documentType: DocumentType;
   expectedStatus: ValidationStatus;
-  extraction: Record<string, string | number | null>;
+  extraction: Record<string, unknown>;
   warningCategories: WarningCategory[];
 }
 
@@ -32,6 +32,7 @@ const FIXTURES = [
   "new-york-temporary-license",
   "florida-motorcycle-endorsement",
   "washington-license-back",
+  "indiana-operator-license",
   "arizona-learner-permit",
   "colorado-missing-dob",
   "illinois-low-confidence",
@@ -79,24 +80,24 @@ export async function runEvalSuite(projectRoot = defaultProjectRoot()): Promise<
   }
 
   const summary = buildDashboardSummary(records, "2026-07-04T00:00:00.000Z");
-  if (summary.documentsProcessed !== 10) {
+  if (summary.documentsProcessed !== 11) {
     results.push({
       slug: "dashboard-summary",
       passed: false,
       status: "FAILED",
       expectedStatus: "VALID",
-      failures: [`Expected 10 processed documents, got ${summary.documentsProcessed}.`]
+      failures: [`Expected 11 processed documents, got ${summary.documentsProcessed}.`]
     });
   }
 
-  if (summary.under21Count !== 2 || summary.expiredCount !== 1 || summary.realIdCount !== 5) {
+  if (summary.under21Count !== 2 || summary.expiredCount !== 2 || summary.realIdCount !== 5) {
     results.push({
       slug: "dashboard-license-facts",
       passed: false,
       status: "FAILED",
       expectedStatus: "VALID",
       failures: [
-        `Expected under21=2 expired=1 realId=5, got under21=${summary.under21Count} expired=${summary.expiredCount} realId=${summary.realIdCount}.`
+        `Expected under21=2 expired=2 realId=5, got under21=${summary.under21Count} expired=${summary.expiredCount} realId=${summary.realIdCount}.`
       ]
     });
   }
