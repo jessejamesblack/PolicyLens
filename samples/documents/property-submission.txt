@@ -1,0 +1,11 @@
+Applicant: Northstar Warehousing Inc
+Policy Number: PROP-778899
+Line of Business: Property
+Primary State: OH
+Effective Date: 2026-08-15
+Expiration Date: 2027-08-15
+Estimated Premium: $310,000
+Per Occurrence Limit: $2,500,000
+Aggregate Limit: $5,000,000
+Confidence: 0.88
+

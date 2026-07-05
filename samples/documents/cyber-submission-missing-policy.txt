@@ -1,0 +1,10 @@
+Applicant: Blue Harbor Payments
+Line of Business: Cyber
+Primary State: NY
+Effective Date: 2026-10-01
+Expiration Date: 2027-10-01
+Estimated Premium: $86,000
+Per Occurrence Limit: $1,000,000
+Aggregate Limit: $3,000,000
+Confidence: 0.84
+

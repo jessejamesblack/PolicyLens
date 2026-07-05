@@ -1,0 +1,11 @@
+Named Insured: Acme Logistics LLC
+Policy Number: GL-123456
+Line of Business: General Liability
+Risk State: IN
+Effective Date: 2026-07-01
+Expiration Date: 2027-07-01
+Total Premium: $125,000
+Per Occurrence Limit: $1,000,000
+Aggregate Limit: $2,000,000
+Confidence: 0.91
+

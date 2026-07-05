@@ -1,0 +1,11 @@
+Named Insured: Meridian Fleet Services
+Policy Number: AUTO-445566
+Line of Business: Commercial Auto
+Risk State: IL
+Effective Date: 2026-09-01
+Expiration Date: 2027-09-01
+Total Premium: $192,000
+Per Occurrence Limit: $1,000,000
+Aggregate Limit: $1,000,000
+Confidence: 0.9
+

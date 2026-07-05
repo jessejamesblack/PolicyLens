@@ -1,0 +1,18 @@
+{
+  "documentType": "Policy",
+  "expectedStatus": "VALID",
+  "extraction": {
+    "insuredName": "Acme Logistics LLC",
+    "policyNumber": "GL-123456",
+    "lineOfBusiness": "General Liability",
+    "state": "IN",
+    "effectiveDate": "2026-07-01",
+    "expirationDate": "2027-07-01",
+    "premium": 125000,
+    "perOccurrenceLimit": 1000000,
+    "aggregateLimit": 2000000,
+    "confidenceScore": 0.91
+  },
+  "warningCategories": []
+}
+

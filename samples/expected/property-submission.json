@@ -1,0 +1,18 @@
+{
+  "documentType": "Submission",
+  "expectedStatus": "VALID",
+  "extraction": {
+    "insuredName": "Northstar Warehousing Inc",
+    "policyNumber": "PROP-778899",
+    "lineOfBusiness": "Property",
+    "state": "OH",
+    "effectiveDate": "2026-08-15",
+    "expirationDate": "2027-08-15",
+    "premium": 310000,
+    "perOccurrenceLimit": 2500000,
+    "aggregateLimit": 5000000,
+    "confidenceScore": 0.88
+  },
+  "warningCategories": []
+}
+

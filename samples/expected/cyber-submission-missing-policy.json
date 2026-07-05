@@ -1,0 +1,18 @@
+{
+  "documentType": "Submission",
+  "expectedStatus": "WARNING",
+  "extraction": {
+    "insuredName": "Blue Harbor Payments",
+    "policyNumber": null,
+    "lineOfBusiness": "Cyber",
+    "state": "NY",
+    "effectiveDate": "2026-10-01",
+    "expirationDate": "2027-10-01",
+    "premium": 86000,
+    "perOccurrenceLimit": 1000000,
+    "aggregateLimit": 3000000,
+    "confidenceScore": 0.84
+  },
+  "warningCategories": ["MISSING_POLICY_NUMBER"]
+}
+
