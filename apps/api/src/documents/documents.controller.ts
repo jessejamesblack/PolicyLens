@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Controller,
   Get,
+  Inject,
   Param,
   Post,
   Req
@@ -29,7 +30,7 @@ type MultipartRequest = {
 
 @Controller("documents")
 export class DocumentsController {
-  constructor(private readonly documentsService: DocumentsService) {}
+  constructor(@Inject(DocumentsService) private readonly documentsService: DocumentsService) {}
 
   @Post("upload")
   async upload(@Req() request: MultipartRequest) {
