@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { DOCUMENT_TYPES, VALIDATION_STATUSES, WARNING_CATEGORIES } from "./types";
+import {
+  DOCUMENT_TYPES,
+  VALIDATION_STATUSES,
+  WARNING_CATEGORIES,
+  type DocumentRecord
+} from "./types";
 
 export const validationWarningSchema = z.object({
   category: z.enum(WARNING_CATEGORIES),
@@ -56,3 +61,8 @@ export const documentRecordSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string()
 });
+
+export function parseDocumentRecord(input: unknown): DocumentRecord | null {
+  const parsed = documentRecordSchema.safeParse(input);
+  return parsed.success ? (parsed.data as DocumentRecord) : null;
+}

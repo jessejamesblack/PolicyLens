@@ -1,4 +1,4 @@
-import { DocumentRecord, DocumentRepository, documentRecordSchema } from "@policylens/domain";
+import { DocumentRecord, DocumentRepository, parseDocumentRecord } from "@policylens/domain";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { dataDir } from "./local-paths";
@@ -41,7 +41,9 @@ export class LocalDocumentRepository implements DocumentRepository {
     try {
       const raw = await readFile(this.filePath, "utf8");
       const parsed = JSON.parse(raw) as unknown[];
-      return parsed.map((record) => documentRecordSchema.parse(record) as DocumentRecord);
+      return parsed
+        .map((record) => parseDocumentRecord(record))
+        .filter((record): record is DocumentRecord => record !== null);
     } catch (error) {
       if (error instanceof Error && "code" in error && error.code === "ENOENT") {
         return [];

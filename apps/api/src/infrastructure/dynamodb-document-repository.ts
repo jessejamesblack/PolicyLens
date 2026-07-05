@@ -1,6 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { DocumentRecord, DocumentRepository, documentRecordSchema } from "@policylens/domain";
+import { DocumentRecord, DocumentRepository, parseDocumentRecord } from "@policylens/domain";
 
 export class DynamoDocumentRepository implements DocumentRepository {
   private readonly tableName = requiredEnv("DOCUMENT_TABLE_NAME");
@@ -33,7 +33,8 @@ export class DynamoDocumentRepository implements DocumentRepository {
     );
 
     return (response.Items ?? [])
-      .map((item) => documentRecordSchema.parse(item) as DocumentRecord)
+      .map((item) => parseDocumentRecord(item))
+      .filter((record): record is DocumentRecord => record !== null)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
@@ -45,7 +46,7 @@ export class DynamoDocumentRepository implements DocumentRepository {
       })
     );
 
-    return response.Item ? (documentRecordSchema.parse(response.Item) as DocumentRecord) : null;
+    return response.Item ? parseDocumentRecord(response.Item) : null;
   }
 
   private async put(record: DocumentRecord): Promise<void> {
