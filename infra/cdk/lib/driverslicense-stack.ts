@@ -10,12 +10,14 @@ import {
   ViewerProtocolPolicy
 } from "aws-cdk-lib/aws-cloudfront";
 import { HttpOrigin, S3BucketOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
-import { AttributeType, BillingMode, Table } from "aws-cdk-lib/aws-dynamodb";
+import { AttributeType, BillingMode, StreamViewType, Table } from "aws-cdk-lib/aws-dynamodb";
 import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
+import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 import { BlockPublicAccess, Bucket, BucketEncryption } from "aws-cdk-lib/aws-s3";
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
+import { Queue } from "aws-cdk-lib/aws-sqs";
 import { Construct } from "constructs";
 import { join } from "node:path";
 
@@ -27,6 +29,12 @@ export class DriversLicENSeStack extends Stack {
       encryption: BucketEncryption.S3_MANAGED,
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       enforceSSL: true,
+      lifecycleRules: [
+        {
+          prefix: "uploads/",
+          expiration: Duration.days(7)
+        }
+      ],
       autoDeleteObjects: true,
       removalPolicy: RemovalPolicy.DESTROY
     });
@@ -37,14 +45,30 @@ export class DriversLicENSeStack extends Stack {
         type: AttributeType.STRING
       },
       billingMode: BillingMode.PAY_PER_REQUEST,
+      stream: StreamViewType.NEW_IMAGE,
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: true
+      },
       removalPolicy: RemovalPolicy.DESTROY
+    });
+
+    const deadLetterQueue = new Queue(this, "ProcessingDeadLetterQueue", {
+      retentionPeriod: Duration.days(14)
+    });
+
+    const processingQueue = new Queue(this, "ProcessingQueue", {
+      visibilityTimeout: Duration.minutes(2),
+      deadLetterQueue: {
+        maxReceiveCount: 3,
+        queue: deadLetterQueue
+      }
     });
 
     const apiFunction = new NodejsFunction(this, "ApiFunction", {
       runtime: Runtime.NODEJS_20_X,
       handler: "handler",
       entry: join(__dirname, "../../../../apps/api/src/lambda.ts"),
-      timeout: Duration.seconds(30),
+      timeout: Duration.seconds(60),
       memorySize: 512,
       bundling: {
         format: OutputFormat.CJS,
@@ -69,6 +93,11 @@ export class DriversLicENSeStack extends Stack {
         DB_ADAPTER: "dynamodb",
         OCR_ADAPTER: "textract",
         EXTRACTION_ADAPTER: "deterministic",
+        PROCESSING_QUEUE_ADAPTER: "sqs",
+        PROCESSING_QUEUE_URL: processingQueue.queueUrl,
+        PROCESSING_MAX_ATTEMPTS: "3",
+        RETAIN_RAW_PII: "false",
+        RAW_PII_RETENTION_DAYS: "7",
         DOCUMENT_BUCKET_NAME: documentBucket.bucketName,
         DOCUMENT_TABLE_NAME: documentTable.tableName,
         CORS_ORIGIN: "*"
@@ -77,6 +106,14 @@ export class DriversLicENSeStack extends Stack {
 
     documentBucket.grantReadWrite(apiFunction);
     documentTable.grantReadWriteData(apiFunction);
+    processingQueue.grantSendMessages(apiFunction);
+    processingQueue.grantConsumeMessages(apiFunction);
+    apiFunction.addEventSource(
+      new SqsEventSource(processingQueue, {
+        batchSize: 1,
+        reportBatchItemFailures: true
+      })
+    );
     apiFunction.addToRolePolicy(
       new PolicyStatement({
         effect: Effect.ALLOW,

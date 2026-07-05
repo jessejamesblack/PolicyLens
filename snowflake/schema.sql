@@ -1,5 +1,6 @@
 CREATE TABLE DOCUMENT_EXTRACTIONS (
   id STRING,
+  schema_version STRING,
   filename STRING,
   document_type STRING,
   full_name STRING,
@@ -24,8 +25,15 @@ CREATE TABLE DOCUMENT_EXTRACTIONS (
   age_at_scan NUMBER,
   is_expired BOOLEAN,
   confidence_score FLOAT,
+  field_confidences VARIANT,
+  barcode_json VARIANT,
   validation_status STRING,
   validation_warnings VARIANT,
+  processing_status STRING,
+  processing_job VARIANT,
+  pii_retention VARIANT,
+  redaction_json VARIANT,
   extracted_json VARIANT,
+  raw_ocr_json VARIANT,
   created_at TIMESTAMP
 );

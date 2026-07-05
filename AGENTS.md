@@ -1,6 +1,6 @@
 # DriversLicENSe Agent Notes
 
-DriversLicENSe is a harness-engineering experiment for synthetic driver license OCR, extraction validation, and dashboard analytics.
+DriversLicENSe is a harness-engineering experiment for driver license OCR, barcode parsing, extraction validation, privacy controls, and dashboard analytics.
 
 Use these defaults unless the user says otherwise:
 
@@ -12,7 +12,7 @@ Use these defaults unless the user says otherwise:
 - API orchestration and infrastructure adapters belong in `apps/api`.
 - UI work belongs in `apps/web`.
 - CDK infrastructure belongs in `infra/cdk`.
-- Preserve both raw extraction JSON and normalized fields.
+- Preserve versioned extraction JSON, normalized fields, field confidence, processing state, and redaction metadata.
 - Never add real identity data; use synthetic samples only.
 - Run `npm.cmd run check:architecture` after changing package boundaries or docs.
 - Before claiming cloud readiness, run `npm.cmd run cdk:synth`.

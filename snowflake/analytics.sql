@@ -84,3 +84,41 @@ SELECT
 FROM DOCUMENT_EXTRACTIONS
 WHERE confidence_score < 0.75
 ORDER BY confidence_score ASC;
+
+-- Low-confidence fields for manual adjudication
+SELECT
+  id,
+  filename,
+  field.value:field::STRING AS field_name,
+  field.value:confidence::FLOAT AS field_confidence,
+  field.value:source::STRING AS source
+FROM DOCUMENT_EXTRACTIONS,
+LATERAL FLATTEN(input => field_confidences) field
+WHERE field.value:needsAdjudication::BOOLEAN
+ORDER BY field_confidence ASC;
+
+-- Barcode coverage
+SELECT
+  document_type,
+  COUNT(*) AS document_count,
+  COUNT_IF(barcode_json:format::STRING = 'AAMVA_PDF417') AS barcode_count
+FROM DOCUMENT_EXTRACTIONS
+GROUP BY document_type
+ORDER BY document_type;
+
+-- Redaction and raw-retention controls
+SELECT
+  COUNT(*) AS document_count,
+  COUNT_IF(redaction_json:redactedStorageKey IS NOT NULL) AS redacted_copy_count,
+  COUNT_IF(redaction_json:retainedRawOcr::BOOLEAN) AS retained_raw_ocr_count,
+  COUNT_IF(redaction_json:retainedRawExtraction::BOOLEAN) AS retained_raw_extraction_count
+FROM DOCUMENT_EXTRACTIONS;
+
+-- Queue health after DynamoDB stream or scheduled export landing
+SELECT
+  processing_status,
+  processing_job:status::STRING AS job_status,
+  COUNT(*) AS document_count
+FROM DOCUMENT_EXTRACTIONS
+GROUP BY processing_status, job_status
+ORDER BY document_count DESC;

@@ -4,12 +4,12 @@ Use this skill when working inside the DriversLicENSe repository.
 
 ## Project Shape
 
-DriversLicENSe is a TypeScript monorepo for synthetic driver license OCR, structured extraction, validation, dashboarding, AWS deployment, and Snowflake-shaped analytics.
+DriversLicENSe is a TypeScript monorepo for driver license OCR, barcode parsing, structured extraction, validation, redaction controls, dashboarding, AWS deployment, and Snowflake-shaped analytics.
 
 Core folders:
 
-- `packages/domain`: types, Zod schemas, deterministic parser, validation, dashboard aggregation.
-- `apps/api`: NestJS API, processing workflow, local adapters, AWS adapters.
+- `packages/domain`: types, Zod schemas, deterministic parser, AAMVA barcode helpers, validation, dashboard filters, and dashboard aggregation.
+- `apps/api`: NestJS API, processing workflow, local adapters, AWS adapters, queue adapters, and redaction adapters.
 - `apps/web`: SvelteKit upload, extraction detail, and dashboard UI.
 - `harness`: golden synthetic license fixtures and expected JSON checks.
 - `infra/cdk`: CloudFront, S3, Lambda, API Gateway, DynamoDB, and Textract infrastructure.
@@ -21,7 +21,7 @@ Core folders:
 
 - Keep local mode working without live credentials.
 - Keep deployed mode working through AWS CDK and GitHub Actions.
-- Preserve raw OCR and raw extraction JSON alongside normalized fields.
+- Preserve schema version, field confidence, processing state, barcode metadata, redaction metadata, and normalized fields.
 - Put shared business rules in `packages/domain`.
 - Put adapter-specific code in `apps/api`.
 - Put UI-only rendering in `apps/web`.
@@ -45,7 +45,7 @@ npm.cmd run verify
 
 ## Change Checklist
 
-- Domain contract changed: update `types.ts`, `schemas.ts`, validation tests, harness fixtures, API adapters, UI rendering, and Snowflake schema.
+- Domain contract changed: update `types.ts`, `schemas.ts`, validation tests, harness fixtures, API adapters, UI rendering, docs, and Snowflake schema.
 - Parser changed: update synthetic samples, expected JSON, parser tests, and harness totals.
 - Dashboard changed: update `dashboard.ts`, chart helpers, dashboard UI, tests, and Snowflake analytics.
 - Deployment changed: update `infra/cdk`, `.github/workflows`, and `docs/AWS_DEPLOYMENT.md`.

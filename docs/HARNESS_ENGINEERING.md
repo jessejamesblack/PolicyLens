@@ -15,15 +15,15 @@ Source: https://openai.com/index/harness-engineering/
 
 ## DriversLicENSe Harnesses
 
-- Extraction harness: `npm.cmd run harness` checks golden synthetic license samples, expected fields, warning categories, validation status, and dashboard totals.
+- Extraction harness: `npm.cmd run harness` checks golden synthetic license samples, expected fields, warning categories, validation status, schema versioned output, and dashboard totals.
 - Architecture harness: `npm.cmd run check:architecture` checks dependency boundaries, required docs, and forbidden project-framing language.
 - Build harness: `npm.cmd run build` verifies each workspace compiles.
 - Cloud harness: `npm.cmd run cdk:synth` verifies AWS infrastructure can synthesize without deployment.
 
 ## Agent-Legible Surfaces
 
-- `packages/domain` contains shared types, schemas, parsing, validation, and dashboard aggregation.
-- `apps/api` exposes raw OCR, raw extraction, normalized fields, validation status, and warnings through API responses.
+- `packages/domain` contains shared types, schemas, parsing, AAMVA barcode helpers, validation, field confidence, and dashboard aggregation.
+- `apps/api` exposes OCR, barcode metadata, normalized fields, redaction metadata, processing job state, validation status, and warnings through API responses.
 - `samples` contains synthetic license source documents and expected JSON fixtures.
 - `snowflake` contains the downstream warehouse shape and analytics queries.
 - `docs/ARCHITECTURE.md` describes boundaries and data flow.
@@ -32,7 +32,8 @@ Source: https://openai.com/index/harness-engineering/
 ## Rules To Preserve
 
 - Keep local mode fully functional without credentials.
-- Preserve raw extraction JSON alongside normalized fields.
+- Preserve schema version, normalized fields, confidence metadata, processing state, and redaction metadata.
 - Add new extraction behavior through adapters or domain helpers, not UI-only logic.
+- Keep queueing, barcode parsing, and redaction behind adapter interfaces.
 - Add or update a golden fixture when changing extraction behavior.
 - Update docs when architecture, commands, or adapter behavior changes.

@@ -1,6 +1,6 @@
 # DriversLicENSe
 
-DriversLicENSe is a harness-engineering experiment for synthetic driver license OCR, structured extraction, validation, and analytics. It takes an uploaded license image or PDF, runs OCR, normalizes fields into typed JSON, validates the output with Zod, stores raw plus normalized data, and renders a data quality dashboard.
+DriversLicENSe is a side project for playing with driver license OCR, structured extraction, validation, and analytics. It takes a license image, PDF, or camera photo, runs OCR, normalizes the fields into typed JSON, checks the result, and shows what needs a second look.
 
 Live site: https://d3damhdwn1rquz.cloudfront.net
 
@@ -23,7 +23,7 @@ General license facts modeled by the app:
 - DOB is useful for age-at-scan, under-21 warnings, and age-bucket analytics.
 - Expiration date drives validity warnings and operational expiration buckets.
 - REAL ID, organ donor, veteran, restrictions, endorsements, class, sex, height, weight, eye color, and hair color are common fields or markers that can become useful structured data.
-- Back-side scans often include machine-readable data; this project treats OCR text as the stable boundary and keeps barcode parsing as a future adapter.
+- Back-side scans often include machine-readable PDF417 data; this project parses AAMVA-style barcode payloads behind a dedicated adapter when that text is available.
 
 ## Architecture
 
@@ -32,16 +32,19 @@ Upload
   -> SvelteKit UI
   -> NestJS API / API Gateway
   -> Local storage or S3
+  -> Local queue or SQS with dead-letter handling
   -> Mock OCR or Amazon Textract
+  -> AAMVA PDF417 barcode adapter
   -> Deterministic structured extraction
   -> Zod validation
+  -> Redacted share-safe copy plus PII retention controls
   -> Local JSON store or DynamoDB
   -> Dashboard API
   -> SvelteKit dashboard
   -> Optional Snowflake analytics model
 ```
 
-The important design choice is raw-plus-normalized persistence. DriversLicENSe stores OCR output and raw extraction JSON alongside normalized fields so failed, low-confidence, or surprising outputs can be replayed without losing context.
+The important design choice is traceable persistence. DriversLicENSe stores normalized fields, schema version, confidence, warning metadata, barcode metadata, and redaction metadata together so failed, low-confidence, or surprising outputs can be replayed without losing context.
 
 ## Hosted AWS Version
 
@@ -53,9 +56,11 @@ AWS resources used by the deployed MVP:
 - S3 stores the static web build and uploaded document objects.
 - API Gateway exposes the NestJS API over HTTP.
 - Lambda runs the NestJS API bundle.
-- DynamoDB stores document workflow records, validation status, warnings, raw OCR, and normalized extraction fields.
+- SQS queues document processing jobs and sends exhausted retries to a dead-letter queue.
+- DynamoDB stores document workflow records, processing job state, validation status, warnings, barcode metadata, redaction metadata, and normalized extraction fields.
+- DynamoDB Streams are enabled so records can be shipped to Snowflake through a stream consumer or scheduled export.
 - Textract performs OCR for uploaded images and small PDFs in deployed mode.
-- IAM grants the Lambda least-path access to S3, DynamoDB, and Textract for this stack.
+- IAM grants the Lambda least-path access to S3, DynamoDB, SQS, and Textract for this stack.
 - GitHub Actions deploys the app through AWS OIDC using the repository secret `AWS_DEPLOY_ROLE_ARN`.
 
 The hosted site does not require visitors to have AWS credentials. Browser calls go through CloudFront to API Gateway.
@@ -89,7 +94,8 @@ docs            Architecture, quality, deployment, and harness notes
 - `POST /documents/:id/process`
 - `GET /documents`
 - `GET /documents/:id`
-- `GET /dashboard/summary`
+- `POST /documents/:id/adjudicate`
+- `GET /dashboard/summary?issuingState=OH&documentType=LicenseFront&validationStatus=WARNING&expirationBucket=Expired`
 
 ## Local Setup
 
@@ -126,6 +132,10 @@ OCR_ADAPTER=mock
 EXTRACTION_ADAPTER=deterministic
 STORAGE_ADAPTER=local
 DB_ADAPTER=local
+PROCESSING_QUEUE_ADAPTER=local
+PROCESSING_MAX_ATTEMPTS=3
+RETAIN_RAW_PII=false
+RAW_PII_RETENTION_DAYS=7
 PORT=3000
 CORS_ORIGIN=http://localhost:5173
 ```
@@ -136,6 +146,7 @@ AWS-only values:
 AWS_REGION=us-east-2
 DOCUMENT_BUCKET_NAME=
 DOCUMENT_TABLE_NAME=
+PROCESSING_QUEUE_URL=
 ```
 
 ## Harness Engineering
@@ -164,7 +175,7 @@ npm.cmd run verify
 
 ## Snowflake Model
 
-`snowflake/schema.sql` defines `DOCUMENT_EXTRACTIONS` with normalized license fields, validation metadata, and raw extraction JSON. `snowflake/analytics.sql` includes queries for issuing-state volume, confidence, warning categories, expiration buckets, physical descriptor coverage, and license facts such as REAL ID, organ donor, veteran, expired, and under-21 counts.
+`snowflake/schema.sql` defines `DOCUMENT_EXTRACTIONS` with normalized license fields, schema version, field confidence, barcode metadata, redaction metadata, validation metadata, and extraction JSON. `snowflake/analytics.sql` includes queries for issuing-state volume, confidence, warning categories, expiration buckets, physical descriptor coverage, barcode coverage, low-confidence fields, privacy controls, and license facts such as REAL ID, organ donor, veteran, expired, and under-21 counts.
 
 DynamoDB is useful for workflow state. Snowflake is the better fit for analytics, trend monitoring, and downstream reporting.
 
@@ -186,14 +197,14 @@ CDK outputs:
 
 More details live in `docs/AWS_DEPLOYMENT.md`.
 
-## Extension Ideas
+## Built-In Experiments
 
-- Add real barcode parsing behind a dedicated adapter.
-- Add image redaction and stricter PII retention controls.
-- Add async document processing with retry and dead-letter handling.
-- Add field-level confidence and manual adjudication for low-confidence values.
-- Add schema versioning for extraction JSON.
-- Add Snowflake ingestion from DynamoDB streams or scheduled exports.
-- Add dashboard filters by issuing state, document type, validation status, and expiration bucket.
+- AAMVA PDF417 barcode payload parsing behind a dedicated adapter.
+- Share-safe redacted image artifacts plus stricter raw PII retention defaults.
+- Async document processing with retry state and SQS dead-letter handling in AWS.
+- Field-level confidence and manual adjudication for low-confidence values.
+- Versioned extraction JSON with `driverslicense.extraction.v2`.
+- Snowflake-shaped ingestion from DynamoDB Streams or scheduled exports.
+- Dashboard filters by issuing state, document type, validation status, and expiration bucket.
 
 DriversLicENSe is not a production identity verification system. It is a compact experimentation surface for OCR, extraction contracts, validation guardrails, cloud deployment, and harness-driven quality loops.

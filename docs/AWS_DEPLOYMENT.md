@@ -1,6 +1,6 @@
 # AWS Deployment
 
-DriversLicENSe deploys with AWS CDK. The stack publishes the SvelteKit static site through CloudFront and routes API paths to the Lambda-hosted NestJS API for synthetic driver license processing.
+DriversLicENSe deploys with AWS CDK. The stack publishes the SvelteKit static site through CloudFront and routes API paths to the Lambda-hosted NestJS API for driver license processing.
 
 ## Local AWS CLI
 
@@ -98,3 +98,26 @@ CDK prints:
 - `ApiEndpoint`: direct API Gateway URL.
 
 The hosted site uses same-origin API calls through CloudFront, so visitors do not need AWS credentials.
+
+## Runtime Resources
+
+The stack creates:
+
+- S3 document bucket with a short lifecycle for protected uploads.
+- S3 website bucket for the static SvelteKit build.
+- DynamoDB document table with Streams enabled for warehouse ingestion.
+- SQS processing queue plus dead-letter queue for retries that exhaust their attempts.
+- Lambda function that handles both HTTP API requests and SQS processing messages.
+- API Gateway HTTP API and CloudFront distribution.
+- Textract permissions for OCR.
+
+The deployed Lambda uses:
+
+```text
+PROCESSING_QUEUE_ADAPTER=sqs
+PROCESSING_MAX_ATTEMPTS=3
+RETAIN_RAW_PII=false
+RAW_PII_RETENTION_DAYS=7
+```
+
+Local mode keeps the same app flow but uses local storage, local JSON, mock OCR, deterministic extraction, and an inline queue adapter.
