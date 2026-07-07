@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  DirectUploadDocumentStorageAdapter,
   DocumentRecord,
   DocumentRepository,
-  DocumentStorageAdapter,
   parseDriverLicenseText
 } from "@driverslicense/domain";
 import { DocumentsService } from "./documents.service";
@@ -12,7 +12,7 @@ import { AamvaPdf417BarcodeAdapter } from "../infrastructure/aamva-pdf417-barcod
 import { LocalProcessingQueueAdapter } from "../infrastructure/local-processing-queue.adapter";
 import { ShareSafeRedactionAdapter } from "../infrastructure/share-safe-redaction.adapter";
 
-class MemoryStorage implements DocumentStorageAdapter {
+class MemoryStorage implements DirectUploadDocumentStorageAdapter {
   private readonly files = new Map<string, Uint8Array>();
 
   async save(input: { documentId: string; filename: string; contentType: string; bytes: Uint8Array }) {
@@ -28,6 +28,25 @@ class MemoryStorage implements DocumentStorageAdapter {
     }
 
     return bytes;
+  }
+
+  async prepareDirectUpload(input: {
+    documentId: string;
+    filename: string;
+    contentType: string;
+    contentLength: number;
+  }) {
+    const storageKey = `${input.documentId}.jpg`;
+
+    return {
+      storageKey,
+      uploadUrl: `memory://${storageKey}`,
+      method: "PUT" as const,
+      headers: {
+        "content-type": input.contentType
+      },
+      expiresAt: new Date("2026-07-06T00:15:00.000Z").toISOString()
+    };
   }
 }
 
@@ -108,5 +127,31 @@ Confidence: 0.91`)
 
     expect(extraction.licenseNumber).toBeNull();
     expect(extraction.issuingState).toBe("NY");
+  });
+
+  it("prepares a direct upload record for large browser files", async () => {
+    const repository = new MemoryRepository();
+    const service = new DocumentsService(
+      new MemoryStorage(),
+      repository,
+      new MockOcrAdapter(),
+      new AamvaPdf417BarcodeAdapter(),
+      new DeterministicStructuredExtractionAdapter(),
+      new ShareSafeRedactionAdapter(),
+      new LocalProcessingQueueAdapter()
+    );
+
+    const prepared = await service.prepareDirectUpload({
+      filename: "large-phone-photo.jpg",
+      documentType: "LicenseFront",
+      contentType: "image/jpeg",
+      contentLength: 12 * 1024 * 1024
+    });
+    const record = await repository.get(prepared.documentId);
+
+    expect(prepared.method).toBe("PUT");
+    expect(prepared.uploadUrl).toContain(prepared.storageKey);
+    expect(record?.status).toBe("UPLOADED");
+    expect(record?.storageKey).toBe(prepared.storageKey);
   });
 });

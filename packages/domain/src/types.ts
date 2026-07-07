@@ -178,6 +178,24 @@ export interface DocumentStorageAdapter {
   read(storageKey: string): Promise<Uint8Array>;
 }
 
+export interface PreparedDirectUpload {
+  documentId: string;
+  storageKey: string;
+  uploadUrl: string;
+  method: "PUT";
+  headers: Record<string, string>;
+  expiresAt: string;
+}
+
+export interface DirectUploadDocumentStorageAdapter extends DocumentStorageAdapter {
+  prepareDirectUpload(input: {
+    documentId: string;
+    filename: string;
+    contentType: string;
+    contentLength: number;
+  }): Promise<Omit<PreparedDirectUpload, "documentId">>;
+}
+
 export interface DocumentRepository {
   create(record: DocumentRecord): Promise<DocumentRecord>;
   update(record: DocumentRecord): Promise<DocumentRecord>;

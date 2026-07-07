@@ -60,6 +60,13 @@ export const uploadDocumentSchema = z.object({
   documentType: documentTypeSchema
 });
 
+export const prepareDirectUploadSchema = z.object({
+  filename: z.string().trim().min(1).max(240),
+  documentType: documentTypeSchema,
+  contentType: z.string().trim().min(1).max(120),
+  contentLength: z.number().int().positive().max(30 * 1024 * 1024)
+});
+
 export const barcodeDataSchema = z.object({
   fullName: z.string().trim().min(1).nullable(),
   licenseNumber: z.string().trim().min(1).nullable(),

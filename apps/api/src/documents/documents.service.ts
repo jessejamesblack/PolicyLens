@@ -1,7 +1,8 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import {
   buildDashboardSummary,
   DashboardFilters,
+  DirectUploadDocumentStorageAdapter,
   DocumentBarcodeAdapter,
   DocumentOcrAdapter,
   DocumentProcessingQueue,
@@ -14,6 +15,7 @@ import {
   LicenseFieldName,
   ManualAdjudication,
   PiiRetentionPolicy,
+  PreparedDirectUpload,
   ProcessingJob,
   StructuredExtractionAdapter,
   StructuredLicenseExtraction,
@@ -81,6 +83,52 @@ export class DocumentsService {
       createdAt: now,
       updatedAt: now
     });
+  }
+
+  async prepareDirectUpload(input: {
+    filename: string;
+    documentType: DocumentType;
+    contentType: string;
+    contentLength: number;
+  }): Promise<PreparedDirectUpload> {
+    if (!supportsDirectUpload(this.storage)) {
+      throw new BadRequestException("Direct uploads are only available in S3 storage mode.");
+    }
+
+    const now = new Date().toISOString();
+    const documentId = randomUUID();
+    const prepared = await this.storage.prepareDirectUpload({
+      documentId,
+      filename: input.filename,
+      contentType: input.contentType,
+      contentLength: input.contentLength
+    });
+
+    await this.repository.create({
+      id: documentId,
+      filename: input.filename,
+      documentType: input.documentType,
+      contentType: input.contentType,
+      storageKey: prepared.storageKey,
+      status: "UPLOADED",
+      validationStatus: null,
+      extraction: null,
+      barcode: null,
+      rawOcr: null,
+      rawExtraction: null,
+      redaction: null,
+      piiRetention: buildPiiRetentionPolicy(),
+      processingJob: null,
+      adjudications: [],
+      errorMessage: null,
+      createdAt: now,
+      updatedAt: now
+    });
+
+    return {
+      documentId,
+      ...prepared
+    };
   }
 
   async process(documentId: string): Promise<DocumentRecord> {
@@ -389,4 +437,8 @@ function upsertManualConfidence(
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown processing error.";
+}
+
+function supportsDirectUpload(storage: DocumentStorageAdapter): storage is DirectUploadDocumentStorageAdapter {
+  return typeof (storage as Partial<DirectUploadDocumentStorageAdapter>).prepareDirectUpload === "function";
 }

@@ -7,6 +7,7 @@ import type {
 } from "@driverslicense/domain";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? "http://localhost:3000" : "");
+const DIRECT_UPLOAD_THRESHOLD_BYTES = 8 * 1024 * 1024;
 
 export interface UploadResponse {
   documentId: string;
@@ -14,7 +15,24 @@ export interface UploadResponse {
   status: "UPLOADED";
 }
 
+interface DirectUploadResponse {
+  documentId: string;
+  storageKey: string;
+  uploadUrl: string;
+  method: "PUT";
+  headers: Record<string, string>;
+  expiresAt: string;
+}
+
 export async function uploadDocument(file: File, documentType: DocumentType): Promise<UploadResponse> {
+  if (file.size >= DIRECT_UPLOAD_THRESHOLD_BYTES) {
+    return uploadDocumentDirect(file, documentType);
+  }
+
+  return uploadDocumentMultipart(file, documentType);
+}
+
+async function uploadDocumentMultipart(file: File, documentType: DocumentType): Promise<UploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("documentType", documentType);
@@ -23,6 +41,38 @@ export async function uploadDocument(file: File, documentType: DocumentType): Pr
     method: "POST",
     body: formData
   });
+}
+
+async function uploadDocumentDirect(file: File, documentType: DocumentType): Promise<UploadResponse> {
+  const prepared = await request<DirectUploadResponse>("/documents/direct-upload", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      filename: file.name,
+      documentType,
+      contentType: file.type || "application/octet-stream",
+      contentLength: file.size
+    })
+  });
+
+  const upload = await fetch(prepared.uploadUrl, {
+    method: prepared.method,
+    headers: prepared.headers,
+    body: file
+  });
+
+  if (!upload.ok) {
+    const message = await upload.text();
+    throw new Error(message || `S3 upload failed with ${upload.status}`);
+  }
+
+  return {
+    documentId: prepared.documentId,
+    filename: file.name,
+    status: "UPLOADED"
+  };
 }
 
 export async function processDocument(documentId: string) {

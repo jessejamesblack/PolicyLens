@@ -8,7 +8,12 @@ import {
   Post,
   Req
 } from "@nestjs/common";
-import { DOCUMENT_TYPES, documentTypeSchema, licenseFieldNameSchema } from "@driverslicense/domain";
+import {
+  DOCUMENT_TYPES,
+  documentTypeSchema,
+  licenseFieldNameSchema,
+  prepareDirectUploadSchema
+} from "@driverslicense/domain";
 import { DocumentsService } from "./documents.service";
 
 type MultipartFilePart = {
@@ -32,6 +37,24 @@ type MultipartRequest = {
 @Controller("documents")
 export class DocumentsController {
   constructor(@Inject(DocumentsService) private readonly documentsService: DocumentsService) {}
+
+  @Post("direct-upload")
+  async prepareDirectUpload(
+    @Body()
+    body: {
+      filename?: unknown;
+      documentType?: unknown;
+      contentType?: unknown;
+      contentLength?: unknown;
+    }
+  ) {
+    const parsed = prepareDirectUploadSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException("filename, documentType, contentType, and contentLength are required.");
+    }
+
+    return this.documentsService.prepareDirectUpload(parsed.data);
+  }
 
   @Post("upload")
   async upload(@Req() request: MultipartRequest) {
