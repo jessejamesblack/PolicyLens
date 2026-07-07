@@ -104,11 +104,13 @@ The hosted site uses same-origin API calls through CloudFront, so visitors do no
 The stack creates:
 
 - S3 document bucket with a short lifecycle for protected uploads.
+- S3 CORS plus presigned PUT URLs so larger phone camera files can bypass API Gateway's 10 MB request limit.
 - S3 website bucket for the static SvelteKit build.
 - DynamoDB document table with Streams enabled for warehouse ingestion.
 - SQS processing queue plus dead-letter queue for retries that exhaust their attempts.
 - Lambda function that handles both HTTP API requests and SQS processing messages.
 - API Gateway HTTP API and CloudFront distribution.
+- API Gateway access log group with one-week retention for request status, route, integration errors, latency, and payload-limit failures.
 - Textract permissions for OCR.
 
 The deployed Lambda uses:

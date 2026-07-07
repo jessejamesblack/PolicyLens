@@ -1,5 +1,6 @@
 import { CfnOutput, Duration, Fn, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
-import { CorsHttpMethod, HttpApi } from "aws-cdk-lib/aws-apigatewayv2";
+import { AccessLogField, AccessLogFormat } from "aws-cdk-lib/aws-apigateway";
+import { CorsHttpMethod, HttpApi, HttpStage, LogGroupLogDestination } from "aws-cdk-lib/aws-apigatewayv2";
 import { HttpLambdaIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import {
   AllowedMethods,
@@ -15,7 +16,9 @@ import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
+import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import { BlockPublicAccess, Bucket, BucketEncryption } from "aws-cdk-lib/aws-s3";
+import { HttpMethods } from "aws-cdk-lib/aws-s3";
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { Queue } from "aws-cdk-lib/aws-sqs";
 import { Construct } from "constructs";
@@ -29,6 +32,14 @@ export class DriversLicENSeStack extends Stack {
       encryption: BucketEncryption.S3_MANAGED,
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       enforceSSL: true,
+      cors: [
+        {
+          allowedHeaders: ["*"],
+          allowedMethods: [HttpMethods.PUT],
+          allowedOrigins: ["*"],
+          maxAge: 300
+        }
+      ],
       lifecycleRules: [
         {
           prefix: "uploads/",
@@ -123,11 +134,40 @@ export class DriversLicENSeStack extends Stack {
     );
 
     const integration = new HttpLambdaIntegration("ApiIntegration", apiFunction);
+    const apiAccessLogGroup = new LogGroup(this, "ApiAccessLogs", {
+      retention: RetentionDays.ONE_WEEK,
+      removalPolicy: RemovalPolicy.DESTROY
+    });
     const api = new HttpApi(this, "HttpApi", {
+      createDefaultStage: false,
       corsPreflight: {
         allowHeaders: ["content-type"],
         allowMethods: [CorsHttpMethod.GET, CorsHttpMethod.POST, CorsHttpMethod.OPTIONS],
         allowOrigins: ["*"]
+      }
+    });
+    new HttpStage(this, "DefaultStage", {
+      httpApi: api,
+      stageName: "$default",
+      autoDeploy: true,
+      accessLogSettings: {
+        destination: new LogGroupLogDestination(apiAccessLogGroup),
+        format: AccessLogFormat.custom(
+          JSON.stringify({
+            requestId: AccessLogField.contextRequestId(),
+            ip: AccessLogField.contextIdentitySourceIp(),
+            requestTime: AccessLogField.contextRequestTime(),
+            httpMethod: AccessLogField.contextHttpMethod(),
+            routeKey: AccessLogField.contextRouteKey(),
+            path: AccessLogField.contextPath(),
+            status: AccessLogField.contextStatus(),
+            protocol: AccessLogField.contextProtocol(),
+            responseLength: AccessLogField.contextResponseLength(),
+            integrationStatus: AccessLogField.contextIntegrationStatus(),
+            integrationError: AccessLogField.contextIntegrationErrorMessage(),
+            error: AccessLogField.contextErrorMessage()
+          })
+        )
       }
     });
 

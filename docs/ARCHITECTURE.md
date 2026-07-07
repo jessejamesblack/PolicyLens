@@ -25,7 +25,7 @@ samples
 
 ```text
 Upload
-  -> DocumentStorageAdapter
+  -> DocumentStorageAdapter or presigned S3 upload
   -> DocumentRepository
   -> DocumentProcessingQueue
   -> DocumentOcrAdapter

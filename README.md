@@ -30,7 +30,8 @@ General license facts modeled by the app:
 ```text
 Upload
   -> SvelteKit UI
-  -> NestJS API / API Gateway
+  -> NestJS API / API Gateway for small files
+  -> presigned S3 browser upload for larger camera photos
   -> Local storage or S3
   -> Local queue or SQS with dead-letter handling
   -> Mock OCR or Amazon Textract
@@ -54,6 +55,7 @@ AWS resources used by the deployed MVP:
 
 - CloudFront distributes the SvelteKit static site and routes API paths from the same public hostname.
 - S3 stores the static web build and uploaded document objects.
+- S3 presigned URLs let larger browser uploads avoid the API Gateway 10 MB request limit.
 - API Gateway exposes the NestJS API over HTTP.
 - Lambda runs the NestJS API bundle.
 - SQS queues document processing jobs and sends exhausted retries to a dead-letter queue.
@@ -62,6 +64,7 @@ AWS resources used by the deployed MVP:
 - Textract performs OCR for uploaded images and small PDFs in deployed mode.
 - IAM grants the Lambda least-path access to S3, DynamoDB, SQS, and Textract for this stack.
 - GitHub Actions deploys the app through AWS OIDC using the repository secret `AWS_DEPLOY_ROLE_ARN`.
+- API Gateway access logs write request status, route, latency, and integration errors to CloudWatch for edge failures that never reach Lambda.
 
 The hosted site does not require visitors to have AWS credentials. Browser calls go through CloudFront to API Gateway.
 
@@ -91,6 +94,7 @@ docs            Architecture, quality, deployment, and harness notes
 ## API
 
 - `POST /documents/upload`
+- `POST /documents/direct-upload`
 - `POST /documents/:id/process`
 - `GET /documents`
 - `GET /documents/:id`
@@ -200,6 +204,7 @@ More details live in `docs/AWS_DEPLOYMENT.md`.
 ## Built-In Experiments
 
 - AAMVA PDF417 barcode payload parsing behind a dedicated adapter.
+- Direct-to-S3 browser uploads for larger phone camera photos.
 - Share-safe redacted image artifacts plus stricter raw PII retention defaults.
 - Async document processing with retry state and SQS dead-letter handling in AWS.
 - Field-level confidence and manual adjudication for low-confidence values.
