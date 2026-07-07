@@ -162,6 +162,8 @@ export class DriversLicENSeStack extends Stack {
           status: AccessLogField.contextStatus(),
           protocol: AccessLogField.contextProtocol(),
           responseLength: AccessLogField.contextResponseLength(),
+          responseLatency: AccessLogField.contextResponseLatency(),
+          integrationLatency: AccessLogField.contextIntegrationLatency(),
           integrationStatus: AccessLogField.contextIntegrationStatus(),
           integrationError: AccessLogField.contextIntegrationErrorMessage(),
           error: AccessLogField.contextErrorMessage()

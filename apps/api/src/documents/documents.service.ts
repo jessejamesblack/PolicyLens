@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import {
   buildDashboardSummary,
   DashboardFilters,
@@ -37,6 +37,8 @@ const DEFAULT_MAX_PROCESSING_ATTEMPTS = 3;
 
 @Injectable()
 export class DocumentsService {
+  private readonly logger = new Logger(DocumentsService.name);
+
   constructor(
     @Inject(DOCUMENT_STORAGE) private readonly storage: DocumentStorageAdapter,
     @Inject(DOCUMENT_REPOSITORY) private readonly repository: DocumentRepository,
@@ -61,6 +63,13 @@ export class DocumentsService {
       filename: input.filename,
       contentType: input.contentType,
       bytes: input.bytes
+    });
+    this.logInfo("document.upload.multipart", {
+      documentId,
+      documentType: input.documentType,
+      contentType: input.contentType,
+      byteLength: input.bytes.byteLength,
+      storageKey: saved.storageKey
     });
 
     return this.repository.create({
@@ -124,6 +133,14 @@ export class DocumentsService {
       createdAt: now,
       updatedAt: now
     });
+    this.logInfo("document.upload.direct.prepared", {
+      documentId,
+      documentType: input.documentType,
+      contentType: input.contentType,
+      contentLength: input.contentLength,
+      storageKey: prepared.storageKey,
+      expiresAt: prepared.expiresAt
+    });
 
     return {
       documentId,
@@ -142,6 +159,14 @@ export class DocumentsService {
     const queueMessage = await this.processingQueue.enqueue({
       documentId,
       attempt: (record.processingJob?.attempts ?? 0) + 1
+    });
+    this.logInfo("document.processing.queued", {
+      documentId,
+      documentType: record.documentType,
+      attempt: (record.processingJob?.attempts ?? 0) + 1,
+      maxAttempts,
+      queueMode: this.processingQueue.mode,
+      messageId: queueMessage.messageId
     });
     const queuedRecord = await this.repository.update({
       ...record,
@@ -194,6 +219,14 @@ export class DocumentsService {
         return await this.processOnce(processingRecord);
       } catch (error) {
         lastError = error;
+        this.logWarn("document.processing.attempt_failed", {
+          documentId,
+          documentType: processingRecord.documentType,
+          attempt,
+          maxAttempts,
+          terminal: attempt >= maxAttempts,
+          errorMessage: errorMessage(error)
+        });
         record = await this.repository.update({
           ...processingRecord,
           status: attempt >= maxAttempts ? "DEAD_LETTER" : "RETRYING",
@@ -224,6 +257,13 @@ export class DocumentsService {
   private async processOnce(processingRecord: DocumentRecord): Promise<DocumentRecord> {
     try {
       const bytes = await this.storage.read(processingRecord.storageKey);
+      this.logInfo("document.processing.started", {
+        documentId: processingRecord.id,
+        documentType: processingRecord.documentType,
+        contentType: processingRecord.contentType,
+        byteLength: bytes.byteLength,
+        storageKey: processingRecord.storageKey
+      });
       const ocrResult = await this.ocrAdapter.extractText({
         documentId: processingRecord.id,
         filename: processingRecord.filename,
@@ -250,6 +290,13 @@ export class DocumentsService {
         barcodeResult
       });
       const validated = validateStructuredExtraction(extractedFields);
+      this.logInfo("document.processing.extracted", {
+        documentId: processingRecord.id,
+        documentType: processingRecord.documentType,
+        validationStatus: validated.status,
+        warningCount: validated.extraction.warnings.length,
+        confidenceScore: validated.extraction.confidenceScore
+      });
       const retentionPolicy = processingRecord.piiRetention ?? buildPiiRetentionPolicy();
       const redacted = await this.redactionAdapter.redact({
         documentId: processingRecord.id,
@@ -267,7 +314,7 @@ export class DocumentsService {
         bytes: redacted.bytes
       });
 
-      return this.repository.update({
+      const updated = await this.repository.update({
         ...processingRecord,
         status: "PROCESSED",
         validationStatus: validated.status,
@@ -297,7 +344,21 @@ export class DocumentsService {
         errorMessage: null,
         updatedAt: new Date().toISOString()
       });
+      this.logInfo("document.processing.succeeded", {
+        documentId: processingRecord.id,
+        documentType: processingRecord.documentType,
+        validationStatus: updated.validationStatus,
+        warningCount: updated.extraction?.warnings.length ?? 0,
+        redactedStorageKey: updated.redaction?.redactedStorageKey ?? null
+      });
+
+      return updated;
     } catch (error) {
+      this.logError("document.processing.failed", {
+        documentId: processingRecord.id,
+        documentType: processingRecord.documentType,
+        errorMessage: errorMessage(error)
+      });
       throw error;
     }
   }
@@ -361,6 +422,18 @@ export class DocumentsService {
     }
 
     return record;
+  }
+
+  private logInfo(event: string, fields: Record<string, unknown>) {
+    this.logger.log(JSON.stringify({ event, ...fields }));
+  }
+
+  private logWarn(event: string, fields: Record<string, unknown>) {
+    this.logger.warn(JSON.stringify({ event, ...fields }));
+  }
+
+  private logError(event: string, fields: Record<string, unknown>) {
+    this.logger.error(JSON.stringify({ event, ...fields }));
   }
 }
 
